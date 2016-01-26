@@ -1,12 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    dotenv (2.0.2)
     minitest (5.8.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
   minitest
 
 BUNDLED WITH
