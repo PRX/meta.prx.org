@@ -2,16 +2,18 @@ require 'test_helper'
 
 describe 'dovetail-basic' do
 
-  it 'test1' do
-    'hello'.must_equal 'hello'
+  it 'gets the root path' do
+    resp = HTTP.get(DOVETAIL_HOST)
+    resp.status.must_equal 404
+    resp.headers['content-type'].must_equal 'text/plain'
+    resp.body.to_s.must_equal "Can't help you, mate."
   end
 
-  it 'test2' do
-    'foo'.wont_equal 'bar'
-  end
-
-  it 'test3' do
-    [1, 2, 3].wont_include 4
+  it 'heads the root path' do
+    resp = HTTP.head(DOVETAIL_HOST)
+    resp.status.must_equal 404
+    resp.headers['content-type'].must_equal 'text/plain'
+    resp.body.to_s.must_be_empty
   end
 
 end
