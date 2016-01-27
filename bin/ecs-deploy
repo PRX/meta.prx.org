@@ -22,6 +22,7 @@ function usage() {
                                       silintl/mariadb:latest, private.registry.com:8000/repo/image:tag
   Optional arguments:
     -t | --timeout          Default is 90s. Script monitors ECS Service for new task definition to be running.
+    -f | --force            Force the service to update, even if the image has not changed
     -e | --tag-env-var      Get image tag name from environment variable. If provided this will override value specified in image name argument.
     -v | --verbose          Verbose output
   Examples:
@@ -45,6 +46,7 @@ CLUSTER=false
 SERVICE=false
 IMAGE=false
 TIMEOUT=90
+FORCE=false
 VERBOSE=false
 TAGVAR=false
 AWS_CLI=$(which aws)
@@ -87,6 +89,9 @@ do
     -t|--timeout)
       TIMEOUT="$2"
       shift
+      ;;
+    -f|--force)
+      FORCE=true
       ;;
     -e|--tag-env-var)
       TAGVAR="$2"
@@ -153,7 +158,7 @@ fi
 # - image
 # - tag
 # If a group is missing it will be an empty string
-imageRegex="^([a-zA-Z0-9.\-]+):?([0-9]+)?/([a-zA-Z0-9\-]+)/?([a-zA-Z0-9\.\-]+)?:?([a-zA-Z0-9\.\-]+)?$"
+imageRegex="^([a-zA-Z0-9.\-]+):?([0-9]+)?/([a-zA-Z0-9\.\-]+)/?([a-zA-Z0-9\-]+)?:?([a-zA-Z0-9\.\-]+)?$"
 
 if [[ $IMAGE =~ $imageRegex ]]; then
   # Define variables from matching groups
@@ -226,23 +231,41 @@ if [[ "x$tag" != "x" ]]; then
   useImage="$useImage:$tag"
 fi
 
-echo "Using image name: $useImage"
-
 # Get current task definition name from service
 TASK_DEFINITION=`$AWS_ECS describe-services --services $SERVICE --cluster $CLUSTER | jq .services[0].taskDefinition | tr -d '"'`
-echo "Current task definition: $TASK_DEFINITION";
+if [ -z "$TASK_DEFINITION" ]; then
+  echo "ERROR: unable to find ECS cluster '$CLUSTER'"
+  exit 1
+fi
+if [ "$TASK_DEFINITION" == 'null' ]; then
+  echo "ERROR: unknown service '$SERVICE'"
+  exit 1
+fi
+echo "Old task definition: $TASK_DEFINITION"
 
 # Get a JSON representation of the current task definition
-$AWS_ECS describe-task-definition --task-def $TASK_DEFINITION > def
+$AWS_ECS describe-task-definition --task-def $TASK_DEFINITION > def.old
 
-# Update definition to use new image name
-sed -i def -e "s|\"image\": \"${imageWithoutTag}.*\"|\"image\": \"${useImage}\"|"
+# Can only handle 1-container-per-task-definition right now
+TASK_IMAGE=`cat def.old | jq .taskDefinition.containerDefinitions[].image | tr -d '"'`
+if [ $(echo "$TASK_IMAGE" | wc -l) -gt 1 ]; then
+  echo "ERROR: found > 1 containers for task-def '$TASK_DEFINITION'"
+  exit 1
+fi
 
-# Filter the def
-jq < def > newdef '.taskDefinition|{family: .family, volumes: .volumes, containerDefinitions: .containerDefinitions}'
+# Only proceed if image has changed (or forced)
+echo "Old image name: $TASK_IMAGE"
+echo "New image name: $useImage"
+if [[ $FORCE != true && $TASK_IMAGE == $useImage ]]; then
+  echo 'Image has not changed - nothing to do!'
+  exit 0
+fi
+
+# Filter the def, and change the image
+jq < def.old > def.new ".taskDefinition|{family: .family, volumes: .volumes, containerDefinitions: .containerDefinitions}|.containerDefinitions[0].image = \"$useImage\""
 
 # Register the new task definition, and store its ARN
-NEW_TASKDEF=`$AWS_ECS register-task-definition --cli-input-json file://newdef | jq .taskDefinition.taskDefinitionArn | tr -d '"'`
+NEW_TASKDEF=`$AWS_ECS register-task-definition --cli-input-json file://def.new | jq .taskDefinition.taskDefinitionArn | tr -d '"'`
 echo "New task definition: $NEW_TASKDEF";
 
 # Update the service
