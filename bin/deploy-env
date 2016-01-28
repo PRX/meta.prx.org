@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'pry'
+
+#
+# deploy multiple ecs services in parallel
+#
+options = {}
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: deploy-env [options]"
+  opts.on('-k', '--aws-access-key ACCESS', 'AWS Access Key ID. May also be set as environment variable AWS_ACCESS_KEY_ID') { |v| options[:aws_access_key] = v }
+  opts.on('-s', '--aws-secret-key SECRET', 'AWS Secret Access Key. May also be set as environment variable AWS_SECRET_ACCESS_KEY') { |v| options[:aws_secret_key] = v }
+  opts.on('-r', '--region REGION', 'AWS Region Name. May also be set as environment variable AWS_DEFAULT_REGION') { |v| options[:region] = v }
+  opts.on('-p', '--profile PROFILE', 'AWS Profile to use - If you set this aws-access-key, aws-secret-key and region are needed') { |v| options[:profile] = v }
+  opts.on('-c', '--cluster CLUSTER', 'Name of ECS cluster') { |v| options[:cluster] = v }
+  opts.on('-m', '--mapping MAPPING', 'Mapping cluster services to new image names: "ecsServiceName=some/docker/image:123"') { |v| options[:mapping] = v }
+  opts.on('-t', '--timeout TIMEOUT', 'How long to wait for new services to start running.') { |v| options[:timeout] = v }
+  opts.on('-f', '--force', 'Force the service to update, even if the image has not changed') { |v| options[:force] = v }
+end.parse!
+
+# validate options
+unless options[:profile] || (options[:aws_access_key] && options[:aws_secret_key]) || (ENV['AWS_ACCESS_KEY_ID'] && ENV['AWS_SECRET_ACCESS_KEY'])
+  puts 'You must provide AWS credentials!'
+  exit 1
+end
+unless options[:profile] || options[:region] || ENV['AWS_DEFAULT_REGION']
+  puts 'You must provide an AWS region!'
+  exit 1
+end
+unless options[:cluster]
+  puts 'You must provide an ECS cluster!'
+  exit 1
+end
+unless options[:mapping] && options[:mapping].length > 0
+  puts 'You must map your ECS services to images!'
+  exit 1
+end
+
+# validate the mapping itself
+mappings = {}
+options[:mapping].split(',').each do |mapping|
+  serviceToImage = mapping.split('=')
+  if serviceToImage.count != 2 || serviceToImage[0].empty? || serviceToImage[1].empty?
+    puts "Invalid service mapping: #{mapping}"
+    exit 1
+  end
+  mappings[serviceToImage[0]] = {
+    image: serviceToImage[1],
+    command: nil,
+    output: nil,
+    code: nil,
+  }
+end
+
+# generate ecs-deploy command line options
+deploy_opts = []
+deploy_opts << "--aws-access-key #{options[:aws_access_key]}" if options[:aws_access_key]
+deploy_opts << "--aws-secret-key #{options[:aws_secret_key]}" if options[:aws_secret_key]
+deploy_opts << "--region #{options[:region]}" if options[:region]
+deploy_opts << "--profile #{options[:profile]}" if options[:profile]
+deploy_opts << "--cluster #{options[:cluster]}" if options[:cluster]
+deploy_opts << "--timeout #{options[:timeout]}" if options[:timeout]
+deploy_opts << "--force" if options[:force]
+deploy_cmd = "#{File.dirname(__FILE__)}/ecs-deploy #{deploy_opts.join(' ')}"
+
+# run updates in parallel
+puts "Updating services in #{options[:cluster]}:"
+threads = []
+mappings.each do |service, data|
+  puts "  #{service} => #{data[:image]}"
+  threads << Thread.new do
+    data[:command] = "#{deploy_cmd} --service-name #{service} --image #{data[:image]}"
+    data[:output] = `#{data[:command]} 2>&1`
+    data[:code] = $?.to_i
+  end
+end
+threads.map(&:join)
+
+# print results
+failures = mappings.select { |s,d| d[:code] != 0 }
+if failures.empty?
+  puts "\nSuccessfully deployed #{mappings.count} services.  Output below:\n"
+else
+  puts "\nERROR: failed to deploy #{failures.count} services.  See output below:\n"
+end
+mappings.each do |service, data|
+  puts "\n---------- #{service} ----------"
+  puts data[:command]
+  puts data[:output]
+  puts "---------- exited with #{data[:code]} ----------"
+end
+
+exit (failures.empty? ? 0 : 1)
