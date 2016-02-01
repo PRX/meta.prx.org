@@ -3,6 +3,7 @@ require 'minitest/autorun'
 require 'minitest/spec'
 require 'minitest/pride'
 require 'http'
+require 'json'
 
 begin require 'pry' rescue LoadError end
 

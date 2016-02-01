@@ -16,4 +16,11 @@ describe 'dovetail-basic' do
     resp.body.to_s.must_be_empty
   end
 
+  it 'is a healthy environment' do
+    resp = HTTP.get("#{DOVETAIL_HOST}/health?strict")
+    resp.status.must_equal 200
+    resp.headers['content-type'].must_equal 'application/json'
+    JSON.parse(resp.body)['ffmpeg'].must_equal 'ok' # spot check
+  end
+
 end
