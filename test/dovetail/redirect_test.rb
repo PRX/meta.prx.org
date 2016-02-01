@@ -10,7 +10,7 @@ describe 'dovetail-redirect' do
 
     FEEDER_GUID = '6b67b920-3487-4738-ba71-e338aad8c322'
     FEEDER_EPISODE = "#{DOVETAIL_HOST}/test_feeder/#{FEEDER_GUID}/my_filename.mp3"
-    FEEDER_MATCHER = /^http:\/\/cdn.dovetail.prxu.org\/test_feeder\/[^\/]+\/my_filename\.mp3$/
+    FEEDER_MATCHER = /^\/\+\/test_feeder\/[^\/]+\/my_filename\.mp3$/
 
     it 'redirects a feeder episode' do
       resp = http_unique.get(FEEDER_EPISODE)
@@ -72,7 +72,7 @@ describe 'dovetail-redirect' do
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 2
       resp.headers['x-depressions'].to_i.must_equal 0
-      resp.headers['location'].must_match /^http:\/\/cdn.dovetail.prxu.org\/test_audio_remote\/[^\/]+\/noise\.mp3$/
+      resp.headers['location'].must_match /^\/\+\/test_audio_remote\/[^\/]+\/noise\.mp3$/
       resp.body.to_s.must_be_empty
     end
 
