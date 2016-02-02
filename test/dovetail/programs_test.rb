@@ -51,7 +51,7 @@ describe 'dovetail-programs' do
         tmp_dir = "#{File.dirname(__FILE__)}/../../tmp"
         new_file = "#{tmp_dir}/#{name}.new.mp3"
         old_file = "#{tmp_dir}/#{name}.old.mp3"
-        Dir.mkdirp(tmp_dir) unless Dir.exists?(tmp_dir)
+        Dir.mkdir(tmp_dir) unless Dir.exists?(tmp_dir)
         File.open(new_file, 'wb') {|f| f.write(new_stitch.body) }
         File.open(old_file, 'wb') {|f| f.write(old_stitch.body) }
 
