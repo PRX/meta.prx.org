@@ -6,7 +6,6 @@ describe 'dovetail-programs' do
   MAX_RETRIES = 5
 
   EPISODES = {
-    '99pi'     => '99pi/190-Fixing-the-Hobo-Suit.mp3',
     'criminal' => 'criminal/23166e58-e181-4c03-b52d-6f6746a1bced/Episode_35__Pen_and_Paper.mp3',
     'memory'   => 'memory/c9dfaa10-7b21-4804-9d5e-7f55dfbefc24/thememorypalace.mp3',
     'serial'   => 'serial/b10f2326-b3b9-478e-a74d-22c460946316/serial-s02-e05.mp3',
