@@ -268,28 +268,33 @@ jq < def.old > def.new ".taskDefinition|{family: .family, volumes: .volumes, con
 NEW_TASKDEF=`$AWS_ECS register-task-definition --cli-input-json file://def.new | jq .taskDefinition.taskDefinitionArn | tr -d '"'`
 echo "New task definition: $NEW_TASKDEF";
 
+# Count the number of tasks in the service, so we know when they've all updated
+TOTAL=`$AWS_ECS describe-services --services $SERVICE --cluster $CLUSTER | jq .services[0].desiredCount`
+
 # Update the service
 UPDATE=`$AWS_ECS update-service --cluster $CLUSTER --service $SERVICE --task-definition $NEW_TASKDEF`
 
 # See if the service is able to come up again
-every=10
+starttime=$(date +%s)
+newtasks=0
+every=5
 i=0
 while [ $i -lt $TIMEOUT ]
 do
-  # Scan the list of running tasks for that service, and see if one of them is the
+  # Scan the list of running tasks for that service, and see if all of them are the
   # new version of the task definition
-  rm -f tasks
+  TASK_ARNS=`$AWS_ECS list-tasks --cluster $CLUSTER  --service-name $SERVICE --desired-status RUNNING | jq -r '.taskArns[]'`
+  TASK_DEFS=`$AWS_ECS describe-tasks --cluster $CLUSTER --tasks $TASK_ARNS`
 
-  $AWS_ECS list-tasks --cluster $CLUSTER  --service-name $SERVICE --desired-status RUNNING \
-    | jq '.taskArns[]' \
-    | xargs -I{} $AWS_ECS describe-tasks --cluster $CLUSTER --tasks {} >> tasks
+  lastnew="$newtasks"
+  newtasks=`echo $TASK_DEFS | jq ".tasks | map(select(.lastStatus == \"RUNNING\") | select(.taskDefinitionArn == \"$NEW_TASKDEF\")) | length"`
 
-  jq < tasks > results ".tasks[]| if .taskDefinitionArn == \"$NEW_TASKDEF\" then . else empty end|.lastStatus"
-
-  RUNNING=`grep -e "RUNNING" results`
-
-  if [ "$RUNNING" ]; then
-    echo "Service updated successfully, new task definition running.";
+  if [ "$newtasks" -ne "$lastnew" ]; then
+    nowtime=$(date +%s)
+    echo "$newtasks/$TOTAL running after $(($nowtime - $starttime)) seconds"
+  fi
+  if [ "$newtasks" -eq "$TOTAL" ]; then
+    echo "Service updated successfully!"
     exit 0
   fi
 
@@ -298,5 +303,5 @@ do
 done
 
 # Timeout
-echo "ERROR: New task definition not running within $TIMEOUT seconds"
+echo "ERROR: $newtasks/$TOTAL new task definitions running within $TIMEOUT seconds"
 exit 1
