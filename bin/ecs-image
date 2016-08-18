@@ -1,141 +1,43 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
+require 'optparse'
+require 'json'
 
-# inspired by https://github.com/silinternational/ecs-deploy
-command -v jq > /dev/null 2>&1 || { echo >&2 'jq is required - install it!'; exit 2; }
+#
+# find the name of the image running for a service + cluster
+#
+$options = {}
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: ecs-deploy [options]'
+  opts.on('-c', '--cluster CLUSTER', 'Name of ECS cluster') { |v| $options[:cluster] = v }
+  opts.on('-n', '--service-name SERVICE_NAME', 'Name of service to deploy') { |v| $options[:service_name] = v }
+end.parse!
 
-function usage() {
-  set -e
-  cat <<EOM
-  ##### ecs-image #####
-  Script for finding the image associated with an ECS service
-  Required arguments:
-    -k | --aws-access-key   AWS Access Key ID. May also be set as environment variable AWS_ACCESS_KEY_ID
-    -s | --aws-secret-key   AWS Secret Access Key. May also be set as environment variable AWS_SECRET_ACCESS_KEY
-    -r | --region           AWS Region Name. May also be set as environment variable AWS_DEFAULT_REGION
-    -p | --profile          AWS Profile to use - If you set this aws-access-key, aws-secret-key and region are needed
-    -c | --cluster          Name of ECS cluster
-    -n | --service-name     Name of service to deploy
-  Optional arguments:
-    -v | --verbose          Verbose output
-  Examples:
-    Simple (Using env vars for AWS settings):
-      ecs-image -c production1 -n doorman-service
-    All options:
-      ecs-image -k ABC123 -s SECRETKEY -r us-east-1 -c production1 -n doorman-service -v
-    Using profiles (for STS delegated credentials, for instance):
-      ecs-image -p PROFILE -c production1 -n doorman-service -v
-EOM
-  exit 2
-}
+# Make sure the cli is installed
+AWS = `which aws`.chomp
+abort 'Cannot locate aws cli - is it installed?' if AWS.empty?
+def ecs(command, args = {})
+  args[:cluster] = $options[:cluster] unless command =~ /task-definition/
+  arg_str = args.map {|key, val| "--#{key.to_s.gsub('_', '-')} #{val}"}.join(' ')
+  response = `#{AWS} --output json ecs #{command} #{arg_str}`
+  abort "Error running '#{command}'" if response.empty?
+  JSON.parse(response)
+end
 
-if [ $# == 0 ]; then usage; fi
-
-# Setup default values for variables
-CLUSTER=false
-SERVICE=false
-VERBOSE=false
-AWS_CLI=$(which aws)
-AWS_ECS="$AWS_CLI --output json ecs"
-
-# Loop through arguments, two at a time for key and value
-while [[ $# > 0 ]]
-do
-  key="$1"
-  case $key in
-    -k|--aws-access-key)
-      AWS_ACCESS_KEY_ID="$2"
-      shift # past argument
-      ;;
-    -s|--aws-secret-key)
-      AWS_SECRET_ACCESS_KEY="$2"
-      shift # past argument
-      ;;
-    -r|--region)
-      AWS_DEFAULT_REGION="$2"
-      shift # past argument
-      ;;
-    -p|--profile)
-      AWS_PROFILE="$2"
-      shift # past argument
-      ;;
-    -c|--cluster)
-      CLUSTER="$2"
-      shift # past argument
-      ;;
-    -n|--service-name)
-      SERVICE="$2"
-      shift # past argument
-      ;;
-    -v|--verbose)
-      VERBOSE=true
-      ;;
-    *)
-      usage
-      exit 2
-      ;;
-  esac
-  shift # past argument or value
-done
-
-# AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION and AWS_PROFILE can be set as environment variables
-if [ -z ${AWS_ACCESS_KEY_ID+x} ]; then unset AWS_ACCESS_KEY_ID; fi
-if [ -z ${AWS_SECRET_ACCESS_KEY+x} ]; then unset AWS_SECRET_ACCESS_KEY; fi
-if [ -z ${AWS_DEFAULT_REGION+x} ];
-  then unset AWS_DEFAULT_REGION
-  else AWS_ECS="$AWS_ECS --region $AWS_DEFAULT_REGION"
-fi
-if [ -z ${AWS_PROFILE+x} ];
-  then unset AWS_PROFILE
-  else AWS_ECS="$AWS_ECS --profile $AWS_PROFILE"
-fi
-
-if [ $VERBOSE == true ]; then
-    set -x
-fi
-
-# Make sure we have all the variables needed: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, CLUSTER
-if [ -z $AWS_ACCESS_KEY_ID ] && [ -z $AWS_PROFILE ]; then
-  echo "AWS_ACCESS_KEY_ID is required. You can set it as an environment variable or pass the value using -k or --aws-access-key"
-  exit 1
-fi
-if [ -z $AWS_SECRET_ACCESS_KEY ] && [ -z $AWS_PROFILE ]; then
-  echo "AWS_SECRET_ACCESS_KEY is required. You can set it as an environment variable or pass the value using -s or --aws-secret-key"
-  exit 1
-fi
-if [ -z $AWS_DEFAULT_REGION ] && [ -z $AWS_PROFILE ]; then
-  echo "AWS_DEFAULT_REGION is required. You can set it as an environment variable or pass the value using -r or --region"
-  exit 1
-fi
-if [ $CLUSTER == false ]; then
-  echo "CLUSTER is required. You can pass the value using -c or --cluster"
-  exit 1
-fi
-if [ $SERVICE == false ]; then
-  echo "SERVICE is required. You can pass the value using -n or --service-name"
-  exit 1
-fi
-
-function join { local IFS="$1"; shift; echo "$*"; }
+# Validate options
+$options[:timeout] ||= 90
+abort 'You must provide an ECS cluster!' unless $options[:cluster]
+abort 'You must designate an ECS service name!' unless $options[:service_name]
 
 # Get current task definition name from service
-TASK_DEFINITION=`$AWS_ECS describe-services --cluster $CLUSTER --services $SERVICE | jq .services[0].taskDefinition | tr -d '"'`
-if [ -z "$TASK_DEFINITION" ]; then
-  echo "ERROR: unable to find ECS cluster '$CLUSTER'"
-  exit 1
-fi
-if [ "$TASK_DEFINITION" == 'null' ]; then
-  echo "ERROR: unknown service '$SERVICE'"
-  exit 1
-fi
+services = ecs('describe-services', services: $options[:service_name])
+abort "Service '#{$options[:service_name]}' not found" if services['services'].empty?
+task_def_arn = services['services'][0]['taskDefinition']
 
 # Lookup image(s) in the task definition
-TASK_IMAGE=`$AWS_ECS describe-task-definition --task-def $TASK_DEFINITION | jq .taskDefinition.containerDefinitions[].image | tr -d '"'`
-
-# Can only handle 1-container-per-task-definition right now
-if [ $(echo "$TASK_IMAGE" | wc -l) -gt 1 ]; then
-  echo "ERROR: found > 1 containers for task-def '$TASK_DEFINITION'"
-  exit 1
-fi
+task_def = ecs('describe-task-definition', task_def: task_def_arn)
+count = task_def['taskDefinition']['containerDefinitions'].count
+abort "ERROR: found #{count} containers for task-def #{task_def_arn}" unless count == 1
+task_image = task_def['taskDefinition']['containerDefinitions'][0]['image']
 
 # Just print the image name
-echo "$TASK_IMAGE"
+puts task_image
