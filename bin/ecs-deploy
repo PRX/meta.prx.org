@@ -66,9 +66,11 @@ abort "Unknown services: #{missing_services.join(', ')}" unless missing_services
 
 # Get a JSON representation of the current task definitions
 old_defs = {}
+old_imgs = {}
 threads = old_arns.map do |service, old_arn|
   Thread.new do
     old_defs[service] = ecs('describe-task-definition', task_def: old_arn)
+    old_imgs[service] = old_defs[service]['taskDefinition']['containerDefinitions'][0]['image']
   end
 end
 threads.map(&:join)
@@ -92,10 +94,9 @@ puts "Updating services in #{$options[:cluster]}"
 puts
 mappings.each do |service, new_img|
   count = task_counts[service] == 1 ? '1 task' : "#{task_counts[service]} tasks"
-  old_img = old_defs[service]['taskDefinition']['containerDefinitions'][0]['image']
   puts "  #{service} (#{count})"
-  puts "     old: #{old_img}"
-  if $options[:force] || old_img != new_img
+  puts "     old: #{old_imgs[service]}"
+  if $options[:force] || old_imgs[service] != new_img
     services_to_update << service
     puts "     new: #{new_img}"
   else
