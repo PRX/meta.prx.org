@@ -1,0 +1,244 @@
+# NOTE It seems like a default RouteTable is created along with the VPC, but
+# there's no way to GetAtt the resource from the VPC, so routes and subnets
+# can't be associated with it. For now I'm making another RouteTable to handle
+# that stuff.
+# NOTE Similarly, a default NetworkAcl is created with the VPC, but there is a
+# GetAtt reference to it. Rules can be added to the default NetworkAcl, but
+# be aware there are default rules to contend with.
+# NOTE There's also a default Security Group. It's possible to GetAtt the
+# resource, but I ignore it and make other SG's as needed.
+# NOTE Annoyingly, those defaults don't get tagged, so they appear orphaned, but
+# they work as expected (torn down with the stack, etc).
+# NOTE EC2 Key Pairs cannot be created by CloudFormation templates.
+# TODO Include the monitoring substack
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates an environment for the PRX publishing platform
+Parameters:
+  VPCNameTag:
+    Description: A name used to tag resources created for the VPC
+    Type: String
+    AllowedPattern: "[0-9A-Za-z-_.]+"
+  ECSInstanceTypeParameter:
+    Type: String
+    Default: t1.micro
+    AllowedValues:
+      - t1.micro
+      - t2.small
+    Description: Enter t1.micro, m1.small, or m1.large. Default is t1.micro.
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: false
+      InstanceTenancy: dedicated
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  GatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  Route:
+    Type: "AWS::EC2::Route"
+    DependsOn: "GatewayAttachment"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: "0.0.0.0/0"
+  SubnetA:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  SubnetB:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  SubnetC:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  SubnetD:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.4.0/24
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  SubnetARouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetA
+      RouteTableId: !Ref RouteTable
+  SubnetBRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetB
+      RouteTableId: !Ref RouteTable
+  SubnetCRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetC
+      RouteTableId: !Ref RouteTable
+  SubnetDRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetD
+      RouteTableId: !Ref RouteTable
+  InboundHTTPNetworkAclEntry:
+    Type: "AWS::EC2::NetworkAclEntry"
+    Properties:
+      CidrBlock: "0.0.0.0/0"
+      Egress: false
+      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
+      PortRange:
+        From: '80'
+        To: '80'
+      Protocol: 6 # TCP
+      RuleAction : allow
+      RuleNumber : 101
+  # TODO InboundResponsePortsNetworkAclEntry
+  # TODO OutBoundHTTPNetworkAclEntry
+  # TODO OutBoundHTTPSNetworkAclEntry
+  # TODO OutBoundResponsePortsNetworkAclEntry
+  SubnetANetworkAclAssociation:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref SubnetA
+      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
+  SubnetBNetworkAclAssociation:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref SubnetB
+      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
+  SubnetCNetworkAclAssociation:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref SubnetC
+      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
+  SubnetDNetworkAclAssociation:
+    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+    Properties:
+      SubnetId: !Ref SubnetD
+      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
+  DHCPOptions:
+    Type: "AWS::EC2::DHCPOptions"
+    Properties:
+      DomainName: "ec2.internal"
+      DomainNameServers:
+        - AmazonProvidedDNS
+      Tags:
+        - Key: Name
+          Value: !Ref VPCNameTag
+  DHCPOptionsAssociation:
+    Type: "AWS::EC2::VPCDHCPOptionsAssociation"
+    Properties:
+      DhcpOptionsId: !Ref DHCPOptions
+      VpcId: !Ref VPC
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+  ECSInstanceIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  ECSInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+        - !Ref ECSInstanceIAMRole
+  ECSInstanceWebTrafficSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable web traffic on cluster instances
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+      Tags:
+        - Key: Name
+          Value: !Sub ${VPCNameTag} ECS instances
+  ESCClusterASGLaunchConfiguration:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      ImageId: "ami-55870742"
+      IamInstanceProfile: !Ref ECSInstanceProfile
+      InstanceType: !Ref ECSInstanceTypeParameter
+      InstanceMonitoring: false
+      SecurityGroups:
+        - !Ref ECSInstanceWebTrafficSecurityGroup
+      # TODO KeyName:
+  # ESCClusterASG:
+  #   Type: "AWS::AutoScaling::AutoScalingGroup"
+  #   Properties:
+  #     AvailabilityZones:
+  #       - String
+  #     Cooldown: "300"
+  #     DesiredCapacity: "2"
+  #     HealthCheckGracePeriod: 500
+  #     HealthCheckType: EC2
+  #     LaunchConfigurationName: !Ref ESCClusterASGLaunchConfiguration
+  #     MaxSize: "20"
+  #     MetricsCollection:
+  #       - MetricsCollection
+  #     MinSize: "3"
+  #     NotificationConfigurations:
+  #       - NotificationConfigurations
+  #     PlacementGroup: String
+  #     Tags:
+  #       - Auto Scaling Tag
+  #     TargetGroupARNs:
+  #       - String
+  #     TerminationPolicies:
+  #       - String
+  #     VPCZoneIdentifier:
+  #       - String
+Outputs:
+  ECSClusterName:
+    Description: The name of the ECS cluster
+    Value: !Ref ECSCluster

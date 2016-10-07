@@ -1,0 +1,64 @@
+# NOTE When this stack provides the abilities for resources in other stacks to
+# efficiently monitor, and also send notifications based on events produced by
+# monitoring.
+# NOTE SNS topics are created to logically group events that are being
+# generated. Lambda functions or other consumers of the messages in those topics
+# create alerts and notifications for various clients and endpoints, like Slack.
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Global resources needed for monitoring a stack
+Resources:
+  CloudWatchCriticalSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWCritical
+      Subscription:
+        - Protocol: "lambda"
+          Endpoint: !GetAtt CloudWatchAlarmsToSlackLambda.Arn
+  CloudWatchWarningSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWWarning
+      Subscription:
+        - Protocol: "lambda"
+          Endpoint: !GetAtt CloudWatchAlarmsToSlackLambda.Arn
+  CloudWatchAlarmsToSlackLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Description: >
+        Sends notifications to Slack from CloudWatch alarms
+        via SNS subscriptions
+      Code:
+        ZipFile: >
+          exports.handler = function (event, context, callback) {
+          };
+      Runtime: "nodejs4.3"
+      Handler: "index.handler"
+      Timeout: 3
+      MemorySize: 128
+      Role: !GetAtt LambdaBasicExecutionIAMRole.Arn
+  LambdaBasicExecutionIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+Outputs:
+  CloudWatchCriticalSNSTopicArn:
+    Description: >
+      The ARN of the SNS topic intended
+      for critical CloudWatch alarms
+    Value: !Ref CloudWatchCriticalSNSTopic
+  CloudWatchWarningSNSTopicArn:
+    Description: >
+      The ARN of the SNS topic intended
+      for warning CloudWatch alarms
+    Value: !Ref CloudWatchWarningSNSTopic
