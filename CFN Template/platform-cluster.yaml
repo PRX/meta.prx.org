@@ -10,21 +10,89 @@
 # NOTE Annoyingly, those defaults don't get tagged, so they appear orphaned, but
 # they work as expected (torn down with the stack, etc).
 # NOTE EC2 Key Pairs cannot be created by CloudFormation templates.
-# TODO Include the monitoring substack
+# NOTE This template creates subnets in two AZ's regardless of which region the
+# stack is created in. The template will use AZ's `a` and `b`, unless they are
+# unavailable, in which case it uses the lowest-lettered zones that are
+# available.
+# TODO ASG policies (creation, update, etc)
+# TODO ASG scaling policy
+# TODO ECS Instance logging
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Creates an environment for the PRX publishing platform
+Description: >
+  Creates a container-based environment for the PRX publishing platform. This
+  template can be used to create stacks for various types of environments
+  (staging, testing, production, etc) in any AWS region. It will create a VPC,
+  ECS cluster, ASG, and the resources needed to support them. The VPC will be
+  configured for two availability zones, and monitoring will be added to
+  environment-level resources. Application stacks utilize the resources from
+  this stack to deploy and run.
+Mappings:
+  InstanceTypeMap:
+    staging:
+      InstanceType: t2.micro
+    production:
+      InstanceType: t2.small
+  RegionMap:
+    # AMI's as of 2016-10-07
+    # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+    us-east-1:
+      ImageId: ami-40286957
+    us-west-1:
+      ImageId: ami-20fab440
+    us-west-2:
+      ImageId: ami-562cf236
+    eu-west-1:
+      ImageId: ami-175f1964
+    eu-central-1:
+      ImageId: ami-c55ea2aa
+    ap-northeast-1:
+      ImageId: ami-010ed160
+    ap-southeast-1:
+      ImageId: ami-438b2f20
+    ap-southeast-2:
+      ImageId: ami-862211e5
+  ASGSizingMap:
+    staging:
+      MinSize: "2"
+      DesiredCapacity: "4"
+      WarningThreshold: "6"
+      MaxSize: "8"
+    production:
+      MinSize: "4"
+      DesiredCapacity: "8"
+      WarningThreshold: "100"
+      MaxSize: "128"
 Parameters:
+  EnvironmentType:
+    Description: The environment type for this stack
+    Type: String
+    AllowedValues:
+      - testing
+      - beta
+      - staging
+      - production
   VPCNameTag:
     Description: A name used to tag resources created for the VPC
     Type: String
     AllowedPattern: "[0-9A-Za-z-_.]+"
-  ECSInstanceTypeParameter:
-    Type: String
-    Default: t1.micro
-    AllowedValues:
-      - t1.micro
-      - t2.small
-    Description: Enter t1.micro, m1.small, or m1.large. Default is t1.micro.
+Conditions:
+  # Environment conditions
+  IsTesting: !Equals [!Ref EnvironmentType, testing]
+  IsBeta: !Equals [!Ref EnvironmentType, beta]
+  IsStaging: !Equals [!Ref EnvironmentType, staging]
+  IsProduction: !Equals [!Ref EnvironmentType, production]
+  # Region conditions
+  IsUsEast1: !Equals [!Ref "AWS::Region", us-east-1]
+  IsUsWest1: !Equals [!Ref "AWS::Region", us-west-1]
+  IsUsWest2: !Equals [!Ref "AWS::Region", us-west-2]
+  IsEuWest1: !Equals [!Ref "AWS::Region", eu-west-1]
+  IsEuCentral1: !Equals [!Ref "AWS::Region", eu-central-1]
+  IsApNortheast1: !Equals [!Ref "AWS::Region", ap-northeast-1]
+  IsApNortheast2: !Equals [!Ref "AWS::Region", ap-northeast-2]
+  IsApSoutheast1: !Equals [!Ref "AWS::Region", ap-southeast-1]
+  IsApSoutheast2: !Equals [!Ref "AWS::Region", ap-southeast-2]
+  IsApSouth1: !Equals [!Ref "AWS::Region", ap-south-1]
+  IsApEast1: !Equals [!Ref "AWS::Region", ap-east-1]
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -32,7 +100,7 @@ Resources:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: false
-      InstanceTenancy: dedicated
+      InstanceTenancy: default
       Tags:
         - Key: Name
           Value: !Ref VPCNameTag
@@ -56,72 +124,48 @@ Resources:
           Value: !Ref VPCNameTag
   Route:
     Type: "AWS::EC2::Route"
-    DependsOn: "GatewayAttachment"
+    DependsOn: GatewayAttachment
     Properties:
       RouteTableId: !Ref RouteTable
       GatewayId: !Ref InternetGateway
-      DestinationCidrBlock: "0.0.0.0/0"
-  SubnetA:
+      DestinationCidrBlock: 0.0.0.0/0
+  SubnetX:
     Type: "AWS::EC2::Subnet"
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !If [IsUsWest1, us-west-1c, !Join ["", [!Ref "AWS::Region", a]]]
       CidrBlock: 10.0.1.0/24
       Tags:
         - Key: Name
-          Value: !Ref VPCNameTag
-  SubnetB:
+          Value: !Sub ${VPCNameTag}:X
+  SubnetY:
     Type: "AWS::EC2::Subnet"
     Properties:
       VpcId: !Ref VPC
+      AvailabilityZone: !If [IsUsEast1, us-east-1c, !Join ["", [!Ref "AWS::Region", b]]]
       CidrBlock: 10.0.2.0/24
       Tags:
         - Key: Name
-          Value: !Ref VPCNameTag
-  SubnetC:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.3.0/24
-      Tags:
-        - Key: Name
-          Value: !Ref VPCNameTag
-  SubnetD:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.4.0/24
-      Tags:
-        - Key: Name
-          Value: !Ref VPCNameTag
-  SubnetARouteTableAssociation:
+          Value: !Sub ${VPCNameTag}:Y
+  SubnetXRouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Properties:
-      SubnetId: !Ref SubnetA
+      SubnetId: !Ref SubnetX
       RouteTableId: !Ref RouteTable
-  SubnetBRouteTableAssociation:
+  SubnetYRouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
     Properties:
-      SubnetId: !Ref SubnetB
-      RouteTableId: !Ref RouteTable
-  SubnetCRouteTableAssociation:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId: !Ref SubnetC
-      RouteTableId: !Ref RouteTable
-  SubnetDRouteTableAssociation:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId: !Ref SubnetD
+      SubnetId: !Ref SubnetY
       RouteTableId: !Ref RouteTable
   InboundHTTPNetworkAclEntry:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
-      CidrBlock: "0.0.0.0/0"
+      CidrBlock: 0.0.0.0/0
       Egress: false
       NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
       PortRange:
-        From: '80'
-        To: '80'
+        From: 80
+        To: 80
       Protocol: 6 # TCP
       RuleAction : allow
       RuleNumber : 101
@@ -129,30 +173,20 @@ Resources:
   # TODO OutBoundHTTPNetworkAclEntry
   # TODO OutBoundHTTPSNetworkAclEntry
   # TODO OutBoundResponsePortsNetworkAclEntry
-  SubnetANetworkAclAssociation:
+  SubnetXNetworkAclAssociation:
     Type: "AWS::EC2::SubnetNetworkAclAssociation"
     Properties:
-      SubnetId: !Ref SubnetA
+      SubnetId: !Ref SubnetX
       NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
-  SubnetBNetworkAclAssociation:
+  SubnetYNetworkAclAssociation:
     Type: "AWS::EC2::SubnetNetworkAclAssociation"
     Properties:
-      SubnetId: !Ref SubnetB
-      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
-  SubnetCNetworkAclAssociation:
-    Type: "AWS::EC2::SubnetNetworkAclAssociation"
-    Properties:
-      SubnetId: !Ref SubnetC
-      NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
-  SubnetDNetworkAclAssociation:
-    Type: "AWS::EC2::SubnetNetworkAclAssociation"
-    Properties:
-      SubnetId: !Ref SubnetD
+      SubnetId: !Ref SubnetY
       NetworkAclId: !GetAtt VPC.DefaultNetworkAcl
   DHCPOptions:
     Type: "AWS::EC2::DHCPOptions"
     Properties:
-      DomainName: "ec2.internal"
+      DomainName: ec2.internal
       DomainNameServers:
         - AmazonProvidedDNS
       Tags:
@@ -163,6 +197,26 @@ Resources:
     Properties:
       DhcpOptionsId: !Ref DHCPOptions
       VpcId: !Ref VPC
+  CloudWatchDebugAlarmSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWDebug
+  CloudWatchInfoAlarmSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWInfo
+  CloudWatchWarnAlarmSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWWarn
+  CloudWatchErrorAlarmSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWError
+  CloudWatchFatalAlarmSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: CWFatal
   ECSCluster:
     Type: "AWS::ECS::Cluster"
   ECSInstanceIAMRole:
@@ -171,10 +225,10 @@ Resources:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Effect: "Allow"
+          - Effect: Allow
             Principal:
               Service:
-                - "ec2.amazonaws.com"
+                - ec2.amazonaws.com
             Action:
               - "sts:AssumeRole"
       Path: "/"
@@ -192,7 +246,7 @@ Resources:
       VpcId: !Ref VPC
       GroupDescription: Enable web traffic on cluster instances
       SecurityGroupIngress:
-        - CidrIp: "0.0.0.0/0"
+        - CidrIp: 0.0.0.0/0
           IpProtocol: tcp
           FromPort: 80
           ToPort: 80
@@ -203,42 +257,220 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${VPCNameTag} ECS instances
-  ESCClusterASGLaunchConfiguration:
+  ECSClusterASGLaunchConfiguration:
+    # TODO Finish config
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/quickref-ecs.html
     Type: "AWS::AutoScaling::LaunchConfiguration"
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          commands:
+            01_add_instance_to_cluster:
+              command: !Sub |
+                #!/bin/bash
+                echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.ECSClusterASGLaunchConfiguration.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ECSClusterASGLaunchConfiguration --region ${AWS::Region}
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: 'true'
+                ensureRunning: 'true'
+                files:
+                - "/etc/cfn/cfn-hup.conf"
+                - "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
     Properties:
-      ImageId: "ami-55870742"
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", ImageId]
       IamInstanceProfile: !Ref ECSInstanceProfile
-      InstanceType: !Ref ECSInstanceTypeParameter
+      InstanceType: !FindInMap [InstanceTypeMap, !Ref EnvironmentType, InstanceType]
       InstanceMonitoring: false
       SecurityGroups:
         - !Ref ECSInstanceWebTrafficSecurityGroup
       # TODO KeyName:
-  # ESCClusterASG:
-  #   Type: "AWS::AutoScaling::AutoScalingGroup"
-  #   Properties:
-  #     AvailabilityZones:
-  #       - String
-  #     Cooldown: "300"
-  #     DesiredCapacity: "2"
-  #     HealthCheckGracePeriod: 500
-  #     HealthCheckType: EC2
-  #     LaunchConfigurationName: !Ref ESCClusterASGLaunchConfiguration
-  #     MaxSize: "20"
-  #     MetricsCollection:
-  #       - MetricsCollection
-  #     MinSize: "3"
-  #     NotificationConfigurations:
-  #       - NotificationConfigurations
-  #     PlacementGroup: String
-  #     Tags:
-  #       - Auto Scaling Tag
-  #     TargetGroupARNs:
-  #       - String
-  #     TerminationPolicies:
-  #       - String
-  #     VPCZoneIdentifier:
-  #       - String
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource ECSClusterASGLaunchConfiguration --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSClusterASG --region ${AWS::Region}
+  ECSClusterASG:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AvailabilityZones:
+        - !GetAtt SubnetX.AvailabilityZone
+        - !GetAtt SubnetY.AvailabilityZone
+      Cooldown: "300"
+      DesiredCapacity: !FindInMap [ASGSizingMap, !Ref EnvironmentType, DesiredCapacity]
+      HealthCheckGracePeriod: 500
+      HealthCheckType: EC2
+      LaunchConfigurationName: !Ref ECSClusterASGLaunchConfiguration
+      MaxSize: !FindInMap [ASGSizingMap, !Ref EnvironmentType, MaxSize]
+      MetricsCollection:
+        - Granularity: 1Minute
+      MinSize: !FindInMap [ASGSizingMap, !Ref EnvironmentType, MinSize]
+      NotificationConfigurations:
+        - TopicARN: !Ref CloudWatchDebugAlarmSNSTopic
+          NotificationTypes:
+            - "autoscaling:EC2_INSTANCE_LAUNCH"
+            - "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+            - "autoscaling:EC2_INSTANCE_TERMINATE"
+            - "autoscaling:EC2_INSTANCE_TERMINATE_ERROR"
+            - "autoscaling:TEST_NOTIFICATION"
+      Tags:
+        - Key: Name
+          Value: !Ref ECSCluster
+          PropagateAtLaunch: true
+      #  TerminationPolicies:
+        # - String
+      VPCZoneIdentifier:
+        - !Ref SubnetX
+        - !Ref SubnetY
+  ASGMaxSizeReachedAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      AlarmDescription: >
+        The total count of instances in the ASG has reached the group's
+        maximum size
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref ECSClusterASG
+      EvaluationPeriods: "1"
+      MetricName: GroupTotalInstances
+      Namespace: AWS/AutoScaling
+      OKActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      Period: "60"
+      Statistic: Maximum
+      Threshold: !FindInMap [ASGSizingMap, !Ref EnvironmentType, MaxSize]
+      Unit: None
+  ASGSizeWarningThresholdReachedAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudWatchWarnAlarmSNSTopic
+      AlarmDescription: >
+        The total count of instances in the ASG has reached the group's
+        warning threshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref ECSClusterASG
+      EvaluationPeriods: "1"
+      MetricName: GroupTotalInstances
+      Namespace: AWS/AutoScaling
+      OKActions:
+        - !Ref CloudWatchWarnAlarmSNSTopic
+      Period: "60"
+      Statistic: Maximum
+      Threshold: !FindInMap [ASGSizingMap, !Ref EnvironmentType, WarningThreshold]
+      Unit: None
+  ASGBelowDesiredCapacityAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudWatchWarnAlarmSNSTopic
+      AlarmDescription: >
+        The total count of instances in the ASG has fallen below the desired
+        capacity of the group
+      ComparisonOperator: LessThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref ECSClusterASG
+      EvaluationPeriods: "1"
+      MetricName: GroupTotalInstances
+      Namespace: AWS/AutoScaling
+      OKActions:
+        - !Ref CloudWatchWarnAlarmSNSTopic
+      Period: "60"
+      Statistic: Maximum
+      Threshold: !FindInMap [ASGSizingMap, !Ref EnvironmentType, DesiredCapacity]
+      Unit: None
+  ECSClusterMemoryUtilizationOver95:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      AlarmDescription: >
+        The memory utilization of the ECS cluster has exceeded 95% for more than
+        three minutes
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: Cluster­Name
+          Value: !Ref ECSCluster
+      EvaluationPeriods: "3"
+      MetricName: MemoryUtilization
+      Namespace: AWS/ECS
+      OKActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      Period: "60"
+      Statistic: Average
+      Threshold: "95"
+      Unit: Percent
+  ECSClusterCPUUtilizationOver95:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      AlarmDescription: >
+        The CPU utilization of the ECS cluster has exceeded 95% for more than
+        three minutes
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: Cluster­Name
+          Value: !Ref ECSCluster
+      EvaluationPeriods: "3"
+      MetricName: MemoryUtilization
+      Namespace: AWS/ECS
+      OKActions:
+        - !Ref CloudWatchErrorAlarmSNSTopic
+      Period: "60"
+      Statistic: Average
+      Threshold: "95"
+      Unit: Percent
+  LambdaBasicExecutionIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 Outputs:
   ECSClusterName:
     Description: The name of the ECS cluster
     Value: !Ref ECSCluster
+  AvailabilityZoneX:
+    Description: One of two availability zones this stack supports
+    Value: !GetAtt SubnetX.AvailabilityZone
+  AvailabilityZoneY:
+    Description: One of two availability zones this stack supports
+    Value: !GetAtt SubnetY.AvailabilityZone
