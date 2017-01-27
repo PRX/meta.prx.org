@@ -9,11 +9,11 @@ class StitchFinder
   DOVETAIL_REQUEST_LIMIT = 10
 
   DOVETAIL_FEEDS = %w(
-    http://feeds.millennialpodcast.org/millennialpodcast
-    http://feeds.serialpodcast.org/serialpodcast
-    http://feeds.themoth.org/themothpodcast
-    http://feeds.feedburner.com/CriminalShow
-    http://feeds.99percentinvisible.org/99percentinvisible
+    http://feeder-staging.prx.tech/podcasts/26
+    http://feeder-staging.prx.tech/podcasts/13
+    http://feeder-staging.prx.tech/podcasts/24
+    http://feeder-staging.prx.tech/podcasts/18
+    http://feeder-staging.prx.tech/podcasts/23
   )
 
   attr_reader :stitches
@@ -29,7 +29,7 @@ class StitchFinder
     enclosures = []
     threads = DOVETAIL_FEEDS.map do |feed|
       Thread.new do
-        Nokogiri::HTML(open(feed)).xpath('//origenclosurelink/text()').each do |link|
+        Nokogiri::HTML(open(feed)).xpath('//enclosure/@url').each do |link|
           if link.to_s.include?(ENCLOSURE_TOKEN)
             enclosures << link.to_s.split(ENCLOSURE_TOKEN).last
           end
@@ -53,7 +53,15 @@ class StitchFinder
         end
         threads << Thread.new do
           resp = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
-          locations << resp.headers['Location'] if resp.headers['Location'][0..2] == '/+/'
+          if resp.headers['Location'][0..2] == '/+/'
+            locations << resp.headers['Location']
+          elsif resp.headers['Location'] =~ /^.+cdn[^.]*.prxu\.org\//
+            locations << resp.headers['Location'].gsub(/^.+cdn[^.]*.prxu\.org\//, '/+/')
+          elsif resp.headers['Location'].include? 'dovetail.serialpodcast.org'
+            locations << resp.headers['Location'].gsub(/^.dovetail\.serialpodcast\.org\//, '/+/')
+          else
+            # unrecognized redirect
+          end
         end
       end
     end
