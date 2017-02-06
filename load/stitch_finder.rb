@@ -9,7 +9,7 @@ class StitchFinder
   DOVETAIL_REQUEST_LIMIT = 10
 
   DOVETAIL_FEEDS = %w(
-    http://feeder-staging.prx.tech/podcasts/26
+    http://feeder-staging.prx.tech/podcasts/23
     http://feeder-staging.prx.tech/podcasts/13
     http://feeder-staging.prx.tech/podcasts/24
     http://feeder-staging.prx.tech/podcasts/18
@@ -58,7 +58,7 @@ class StitchFinder
           elsif resp.headers['Location'] =~ /^.+cdn[^.]*.prxu\.org\//
             locations << resp.headers['Location'].gsub(/^.+cdn[^.]*.prxu\.org\//, '/+/')
           elsif resp.headers['Location'].include? 'dovetail.serialpodcast.org'
-            locations << resp.headers['Location'].gsub(/^.dovetail\.serialpodcast\.org\//, '/+/')
+            locations << resp.headers['Location'].gsub(/^.+dovetail\.serialpodcast\.org\//, '/+/')
           else
             # unrecognized redirect
           end
