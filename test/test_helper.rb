@@ -9,6 +9,4 @@ require 'config'
 begin require 'pry' rescue LoadError end
 
 # output format
-if ENV['CI']
-  Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
-end
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
