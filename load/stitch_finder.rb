@@ -8,13 +8,13 @@ class StitchFinder
 
   DOVETAIL_REQUEST_LIMIT = 10
 
-  DOVETAIL_FEEDS = %w(
-    http://feeder-staging.prx.tech/podcasts/23
-    http://feeder-staging.prx.tech/podcasts/13
-    http://feeder-staging.prx.tech/podcasts/24
-    http://feeder-staging.prx.tech/podcasts/18
-    http://feeder-staging.prx.tech/podcasts/23
-  )
+  DOVETAIL_FEEDS = [
+    'http://feeder-staging.prx.tech/podcasts/23', # 99pi
+    'http://feeder-staging.prx.tech/podcasts/13', # serial
+    'http://feeder-staging.prx.tech/podcasts/24', # themoth
+    'http://feeder-staging.prx.tech/podcasts/18', # criminal
+    'http://feeder-staging.prx.tech/podcasts/3',  # memory
+  ]
 
   attr_reader :stitches
 
@@ -53,7 +53,13 @@ class StitchFinder
         end
         threads << Thread.new do
           resp = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
-          if resp.headers['Location'][0..2] == '/+/'
+          if resp.status == 404
+            path.gsub!(/^\//, '/prod_') # try the prod_ program key
+            resp = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
+          end
+          if resp.status != 302
+            puts "error: #{resp.status} from #{path}"
+          elsif resp.headers['Location'][0..2] == '/+/'
             locations << resp.headers['Location']
           elsif resp.headers['Location'] =~ /^.+cdn[^.]*.prxu\.org\//
             locations << resp.headers['Location'].gsub(/^.+cdn[^.]*.prxu\.org\//, '/+/')
