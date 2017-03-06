@@ -7,11 +7,16 @@ environment_variables:
 phases:
   install:
     commands:
+      - add-apt-repository -y ppa:mc3man/trusty-media
       - apt-get update -y
+      - apt-get dist-upgrade -y
       - apt-get install -y jq
   pre_build:
     commands:
-      - curl -so ffmpeg.tar.xz $FFMPEG_BIN && unxz ffmpeg.tar.xz && tar x ffmpeg.tar
+      - apt-get install ffmpeg
+      # - curl -so ffmpeg.tar.xz $FFMPEG_BIN
+      # - unxz ffmpeg.tar.xz
+      # - tar x ffmpeg.tar
       - bundle install
   build:
     commands:
