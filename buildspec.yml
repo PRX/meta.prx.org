@@ -1,0 +1,27 @@
+version: 0.1
+environment_variables:
+  plaintext:
+    # FFPROBE_PATH: "bin/ffprobe"
+    FFMPEG_BIN: https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
+    BUILD_PHASE_MARKER: build_phase_complete
+phases:
+  install:
+    commands:
+      - apt-get update -y
+      - apt-get install -y jq
+  pre_build:
+    commands:
+      - curl -so ffmpeg.tar.xz $FFMPEG_BIN && unxz ffmpeg.tar.xz && tar x ffmpeg.tar
+      - bundle install
+  build:
+    commands:
+      - bundle exec rake
+      - touch $BUILD_PHASE_MARKER
+  post_build:
+    commands:
+      - test -e $BUILD_PHASE_MARKER
+artifacts:
+  # It seems like CodePipeline and CodeBuild expect an artifact here. Currently
+  # we don't need any, so this is essentially a no-op.
+  files:
+    - README.md
