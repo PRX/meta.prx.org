@@ -2,21 +2,19 @@ version: 0.1
 environment_variables:
   plaintext:
     # FFPROBE_PATH: "bin/ffprobe"
+    FFMPEG_STATIC_DIR: ffmpeg-static
     FFMPEG_BIN: https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
     BUILD_PHASE_MARKER: build_phase_complete
 phases:
-  install:
-    commands:
-      - add-apt-repository -y ppa:mc3man/trusty-media
-      - apt-get update -y
-      - apt-get dist-upgrade -y
-      - apt-get install -y jq
+  # install:
+  #   commands:
+  #     - apt-get update -y
   pre_build:
     commands:
-      - apt-get install ffmpeg
-      # - curl -so ffmpeg.tar.xz $FFMPEG_BIN
-      # - unxz ffmpeg.tar.xz
-      # - tar x ffmpeg.tar
+      - mkdir $FFMPEG_STATIC_DIR
+      - curl -so ffmpeg.tar.xz $FFMPEG_BIN
+      - unxz ffmpeg.tar.xz
+      - tar xvf ffmpeg.tar -C ./$FFMPEG_STATIC_DIR --strip-components=1
       - bundle install
   build:
     commands:
