@@ -19,10 +19,10 @@ phases:
   build:
     commands:
       - bundle exec rake
-      - touch $BUILD_PHASE_MARKER
-  post_build:
-    commands:
-      - test -e $BUILD_PHASE_MARKER
+      # - touch $BUILD_PHASE_MARKER
+  # post_build:
+  #   commands:
+  #     - test -e $BUILD_PHASE_MARKER
 artifacts:
   # It seems like CodePipeline and CodeBuild expect an artifact here. Currently
   # we don't need any, so this is essentially a no-op.
