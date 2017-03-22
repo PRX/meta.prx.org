@@ -2,7 +2,7 @@ require 'minitest/reporters'
 require 'minitest/autorun'
 require 'minitest/spec'
 require 'minitest/pride'
-require 'http'
+require 'excon'
 require 'json'
 require 'config'
 
