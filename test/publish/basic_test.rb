@@ -15,11 +15,14 @@ describe 'publish-basic', :js do
     page.must_have_content 'Your Series'
   end
 
-  it 'can view a story' do
-    publish_login!
-    visit "#{CONFIG.PUBLISH_HOST}/story/187086"
-    page.must_have_content 'Edit Episode'
-    page.must_have_content 'Episode 2e'
-  end
+  # TODO: Intl errors prevent waiting for spinners to disappear
+  # it 'can navigate to a story' do
+  #   publish_visit CONFIG.PUBLISH_HOST
+  #   all('publish-home-story')[1].click
+  #   publish_wait
+  #   page.must_have_content 'Edit Episode'
+  #   page.must_have_content 'Episode Title'
+  #   page.must_have_content 'Cover Image'
+  # end
 
 end

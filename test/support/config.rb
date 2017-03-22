@@ -5,7 +5,7 @@ CONFIG = OpenStruct.new
 optional_envs = %w(DOVETAIL_PROD)
 
 # load env config
-File.open("#{File.dirname(__FILE__)}/../env-example", 'r').each_line do |line|
+File.open("#{File.dirname(__FILE__)}/../../env-example", 'r').each_line do |line|
   unless line.strip.empty? || line[0] == '#'
     name = line.split('=').first
     CONFIG[name] = ENV[name] unless ENV[name].nil? || ENV[name].empty?

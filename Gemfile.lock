@@ -26,6 +26,8 @@ GEM
     mime-types-data (3.2016.0521)
     mini_portile2 (2.1.0)
     minitest (5.10.1)
+    minitest-focus (1.1.2)
+      minitest (>= 4, < 6)
     minitest-reporters (1.1.14)
       ansi
       builder
@@ -64,6 +66,7 @@ DEPENDENCIES
   excon
   filesize
   minitest
+  minitest-focus
   minitest-reporters
   nokogiri
   poltergeist

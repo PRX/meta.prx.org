@@ -3,8 +3,9 @@ require 'capybara/minitest'
 require 'capybara/poltergeist'
 require 'capybara_minitest_spec'
 require 'fileutils'
+require 'publish_dsl'
 
-SCREENSHOT_DIR = "#{File.dirname(__FILE__)}/tmp"
+SCREENSHOT_DIR = "#{File.dirname(__FILE__)}/../tmp"
 FileUtils.rm_rf(SCREENSHOT_DIR)
 
 Capybara.configure do |config|
@@ -24,6 +25,7 @@ end
 class BrowserTestCase < Minitest::Spec
   include Capybara::DSL
   include Capybara::Minitest::Assertions
+  include Publish::DSL
 
   register_spec_type(self) do |desc, meta|
     meta == :js || meta[:js] unless meta.nil?
@@ -45,24 +47,5 @@ class BrowserTestCase < Minitest::Spec
     while File.exist?("#{path}_#{num}.png") do num += 1 end
     page.save_screenshot("#{path}_#{num}.png")
     File.write("#{path}_#{num}.html", body)
-  end
-
-  # TODO: phantomjs not rendering the iframe, so need to manually navigate
-  # to ID to get the session cookie
-  PRX_SESSION = {}
-  def publish_login!
-    if PRX_SESSION[:name]
-      page.driver.set_cookie(PRX_SESSION[:name], PRX_SESSION[:value], PRX_SESSION[:options])
-    else
-      visit CONFIG.PUBLISH_HOST + '/login'
-      visit find('iframe')[:src]
-      fill_in('Enter your email address', with: CONFIG.PUBLISH_USER)
-      fill_in('password', with: CONFIG.PUBLISH_PASS)
-      click_button('Sign In')
-      cookie = page.driver.cookies.find {|c| c.first.match(/^_prx_session/)}.last
-      PRX_SESSION[:name] = cookie.name
-      PRX_SESSION[:value] = cookie.value
-      PRX_SESSION[:options] = {domain: cookie.domain, path: cookie.path}
-    end
   end
 end
