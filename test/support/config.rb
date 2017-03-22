@@ -2,7 +2,7 @@ require 'excon'
 require 'ostruct'
 
 CONFIG = OpenStruct.new
-optional_envs = %w(DOVETAIL_PROD)
+optional_envs = %w(DOVETAIL_PROD_HOST)
 
 # load env config
 File.open("#{File.dirname(__FILE__)}/../../env-example", 'r').each_line do |line|
