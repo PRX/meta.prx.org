@@ -11,8 +11,8 @@ describe 'publish-basic', :js do
     publish_login!
     visit CONFIG.PUBLISH_HOST
     page.must_have_content 'Home'
-    page.must_have_content 'Ryan Cavis'
     page.must_have_content 'Your Series'
+    page.must_have_content 'Your Standalone Episodes'
   end
 
   # TODO: Intl errors prevent waiting for spinners to disappear
