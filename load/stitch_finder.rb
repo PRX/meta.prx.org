@@ -8,12 +8,13 @@ class StitchFinder
 
   DOVETAIL_REQUEST_LIMIT = 10
 
+  # TODO: this really only works if feeder_host is staging
   DOVETAIL_FEEDS = [
-    'http://feeder-staging.prx.tech/podcasts/23', # 99pi
-    'http://feeder-staging.prx.tech/podcasts/13', # serial
-    'http://feeder-staging.prx.tech/podcasts/24', # themoth
-    'http://feeder-staging.prx.tech/podcasts/18', # criminal
-    'http://feeder-staging.prx.tech/podcasts/3',  # memory
+    "#{CONFIG.FEEDER_HOST}/podcasts/23", # 99pi
+    "#{CONFIG.FEEDER_HOST}/podcasts/13", # serial
+    "#{CONFIG.FEEDER_HOST}/podcasts/24", # themoth
+    "#{CONFIG.FEEDER_HOST}/podcasts/18", # criminal
+    "#{CONFIG.FEEDER_HOST}/podcasts/3",  # memory
   ]
 
   attr_reader :stitches
@@ -52,10 +53,10 @@ class StitchFinder
           threads = []
         end
         threads << Thread.new do
-          resp = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
+          resp = Excon.get("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp", unique_agent)
           if resp.status == 404
             path.gsub!(/^\//, '/prod_') # try the prod_ program key
-            resp = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
+            resp = Excon.get("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp", unique_agent)
           end
           if resp.status != 302
             puts "error: #{resp.status} from #{path}"
@@ -75,8 +76,8 @@ class StitchFinder
     locations
   end
 
-  def http_unique
-    HTTP.headers('user-agent' => "meta.prx.org tests #{SecureRandom.uuid}")
+  def unique_agent
+    {headers: {'User-Agent': "meta.prx.org tests #{SecureRandom.uuid}"}}
   end
 
 end
