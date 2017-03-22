@@ -18,9 +18,17 @@ namespace :load do
 
 end
 
-Rake::TestTask.new(:test) do |t|
+Rake::TestTask.new('test') do |t|
   t.libs << 'test'
   t.pattern = "test/**/*_test.rb"
+end
+Rake::TestTask.new('test:dovetail') do |t|
+  t.libs << 'test'
+  t.pattern = "test/dovetail/*_test.rb"
+end
+Rake::TestTask.new('test:publish') do |t|
+  t.libs << 'test'
+  t.pattern = "test/publish/*_test.rb"
 end
 
 task default: :test
