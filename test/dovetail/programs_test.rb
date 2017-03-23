@@ -2,6 +2,7 @@ require 'test_helper'
 require 'digest'
 
 describe 'dovetail-programs' do
+  include Dovetail::DSL
 
   EPISODES = {
     'criminal' => 'prod_criminal/23166e58-e181-4c03-b52d-6f6746a1bced/Episode_35__Pen_and_Paper.mp3',
@@ -13,20 +14,16 @@ describe 'dovetail-programs' do
   PROD_THREADS = {}
   PROD_DOWNLOADS = {}
 
-  def http_unique
-    HTTP.headers('user-agent' => "meta.prx.org tests #{SecureRandom.uuid}")
-  end
-
   def tmp_file(program, filename)
     tmp_dir = "#{File.dirname(__FILE__)}/../../tmp"
-    Dir.mkdir(tmp_dir) unless Dir.exists?(tmp_dir)
+    Dir.mkdir(tmp_dir) unless Dir.exist?(tmp_dir)
     "#{tmp_dir}/#{program}.#{filename}"
   end
 
   before do
     if NEW_THREADS.empty?
       EPISODES.each do |name, path|
-        redirect = http_unique.get("#{DOVETAIL_HOST}/#{path}?noImp")
+        redirect = get_unique("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp")
         redirect.status.must_equal 302
         redirect.headers['x-not-impressed'].must_equal 'yes'
         redirect.headers['location'].must_include "/prod_#{name}/"
@@ -35,11 +32,11 @@ describe 'dovetail-programs' do
         # (2) both environments are using the same SECRET_KEY
         path = "/+/prod_#{name}/" + redirect.headers['location'].split("/prod_#{name}/").last
         NEW_THREADS[name] = Thread.new do
-          NEW_DOWNLOADS[name] = HTTP.get(DOVETAIL_HOST + path)
+          NEW_DOWNLOADS[name] = Excon.get(CONFIG.DOVETAIL_HOST + path)
           File.open(tmp_file(name, 'new.mp3'), 'wb') {|f| f.write(NEW_DOWNLOADS[name].body) }
         end
         PROD_THREADS[name] = Thread.new do
-          PROD_DOWNLOADS[name] = HTTP.get(DOVETAIL_PROD + path.gsub('/prod_', '/'))
+          PROD_DOWNLOADS[name] = Excon.get(CONFIG.DOVETAIL_PROD_HOST + path.gsub('/prod_', '/'))
           File.open(tmp_file(name, 'old.mp3'), 'wb') {|f| f.write(PROD_DOWNLOADS[name].body) }
         end
       end

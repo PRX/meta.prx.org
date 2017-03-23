@@ -1,3 +1,6 @@
-DOVETAIL_HOST=
-DOVETAIL_PROD=
-FEEDER_HOST=
+DOVETAIL_HOST=dovetail-staging.prxu.org
+DOVETAIL_PROD_HOST=dovetail.prxu.org
+FEEDER_HOST=feeder-staging.prx.tech
+PUBLISH_HOST=publish-staging.prx.tech
+PUBLISH_USER=
+PUBLISH_PASS=

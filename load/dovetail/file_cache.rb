@@ -1,6 +1,7 @@
 require 'config'
 require 'stitch_finder'
 require 'filesize'
+require 'json'
 
 class FileCache
 
@@ -12,7 +13,7 @@ class FileCache
     @errors = 0
     check_health!
 
-    puts "\nGetting stitch URLs from #{DOVETAIL_HOST}..."
+    puts "\nGetting stitch URLs from #{CONFIG.DOVETAIL_HOST}..."
     @stitches = StitchFinder.new(@total, @per).stitches
     puts "  got #{@stitches.count} stitches"
 
@@ -28,7 +29,7 @@ class FileCache
     servers = {}
     threads = 10.times.map do
       Thread.new do
-        resp = HTTP.get("#{DOVETAIL_HOST}/health")
+        resp = Excon.get("#{CONFIG.DOVETAIL_HOST}/health")
         json = JSON.parse(resp.body)
         servers[json['uuid']] = json['filecache']
       end
@@ -47,7 +48,7 @@ class FileCache
     Thread.new do
       while path = @stitches.shift
         start = Time.now
-        resp = HTTP.head("#{DOVETAIL_HOST}/#{path}")
+        resp = Excon.head("#{CONFIG.DOVETAIL_HOST}/#{path}")
         puts "  #{resp.status} HEAD #{path} (#{(Time.now - start).round}s)"
         @errors += 1 if resp.status != 200
       end

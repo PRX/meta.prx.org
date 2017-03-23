@@ -12,6 +12,10 @@ To run the tests locally:
 cp env-example .env
 vi .env # and enter your staging hosts
 bundle exec rake test
+
+# or run a single subset of tests
+bundle exec rake test:dovetail
+bundle exec rake test:publish
 ```
 
 ### Load Tests
