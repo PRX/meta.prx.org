@@ -13,10 +13,6 @@ Capybara.configure do |config|
   config.default_driver = :rack_test
 end
 
-# Capybara.register_driver :chrome do |app|
-#   Capybara::Selenium::Driver.new(app, browser: :chrome)
-# end
-
 Capybara.register_driver :poltergeist do |app|
   # TODO: Intl raising some js errors
   Capybara::Poltergeist::Driver.new(app, js_errors: false)
