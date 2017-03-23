@@ -1,8 +1,10 @@
 require 'nokogiri'
 require 'open-uri'
+require 'dovetail_dsl'
 
 # get stitch urls for a bunch of dovetail episodes
 class StitchFinder
+  include Dovetail::DSL
 
   ENCLOSURE_TOKEN = 'dovetail.prxu.org'
 
@@ -53,10 +55,10 @@ class StitchFinder
           threads = []
         end
         threads << Thread.new do
-          resp = Excon.get("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp", unique_agent)
+          resp = get_unique("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp")
           if resp.status == 404
             path.gsub!(/^\//, '/prod_') # try the prod_ program key
-            resp = Excon.get("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp", unique_agent)
+            resp = get_unique("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp")
           end
           if resp.status != 302
             puts "error: #{resp.status} from #{path}"
@@ -74,10 +76,6 @@ class StitchFinder
     end
     threads.map(&:join)
     locations
-  end
-
-  def unique_agent
-    {headers: {'User-Agent': "meta.prx.org tests #{SecureRandom.uuid}"}}
   end
 
 end

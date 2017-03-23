@@ -6,6 +6,7 @@ require 'minitest/focus'
 require 'excon'
 require 'json'
 require 'config'
+require 'dovetail_dsl'
 
 begin require 'pry' rescue LoadError end
 

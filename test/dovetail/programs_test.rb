@@ -2,6 +2,7 @@ require 'test_helper'
 require 'digest'
 
 describe 'dovetail-programs' do
+  include Dovetail::DSL
 
   EPISODES = {
     'criminal' => 'prod_criminal/23166e58-e181-4c03-b52d-6f6746a1bced/Episode_35__Pen_and_Paper.mp3',
@@ -13,10 +14,6 @@ describe 'dovetail-programs' do
   PROD_THREADS = {}
   PROD_DOWNLOADS = {}
 
-  def unique_agent
-    {headers: {'User-Agent': "meta.prx.org tests #{SecureRandom.uuid}"}}
-  end
-
   def tmp_file(program, filename)
     tmp_dir = "#{File.dirname(__FILE__)}/../../tmp"
     Dir.mkdir(tmp_dir) unless Dir.exist?(tmp_dir)
@@ -26,7 +23,7 @@ describe 'dovetail-programs' do
   before do
     if NEW_THREADS.empty?
       EPISODES.each do |name, path|
-        redirect = Excon.get("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp", unique_agent)
+        redirect = get_unique("#{CONFIG.DOVETAIL_HOST}/#{path}?noImp")
         redirect.status.must_equal 302
         redirect.headers['x-not-impressed'].must_equal 'yes'
         redirect.headers['location'].must_include "/prod_#{name}/"

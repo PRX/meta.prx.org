@@ -1,10 +1,7 @@
 require 'test_helper'
 
 describe 'dovetail-redirect' do
-
-  def unique_agent
-    {headers: {'User-Agent': "meta.prx.org tests #{SecureRandom.uuid}"}}
-  end
+  include Dovetail::DSL
 
   describe 'feeder' do
 
@@ -13,7 +10,7 @@ describe 'dovetail-redirect' do
     FEEDER_MATCHER = /\/test_feeder\/[^\/]+\/my_filename\.mp3$/
 
     it 'redirects a feeder episode' do
-      resp = Excon.get(FEEDER_EPISODE, unique_agent)
+      resp = get_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
       resp.headers['cache-control'].must_equal 'private, max-age=600'
       resp.headers['content-length'].to_i.must_equal 0
@@ -40,7 +37,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'depresses head requests' do
-      resp = Excon.head(FEEDER_EPISODE, unique_agent)
+      resp = head_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
       resp.headers['cache-control'].must_equal 'private, max-age=600'
       resp.headers['x-not-impressed'].must_be_nil
@@ -50,7 +47,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'respects the noImp parameter' do
-      resp = Excon.get("#{FEEDER_EPISODE}?noImp", unique_agent)
+      resp = get_unique("#{FEEDER_EPISODE}?noImp")
       resp.status.must_equal 302
       resp.headers['x-not-impressed'].must_equal 'yes'
       resp.headers['x-impressions'].to_i.must_equal 1
@@ -65,7 +62,7 @@ describe 'dovetail-redirect' do
     REMOTE_GUID = 'b5b5777c-ebbf-43e5-b914-22c4dcc394be'
 
     it 'redirects a raw mp3 file' do
-      resp = Excon.get("#{REMOTE_EPISODE}/#{REMOTE_GUID}/noise.mp3", unique_agent)
+      resp = get_unique("#{REMOTE_EPISODE}/#{REMOTE_GUID}/noise.mp3")
       resp.status.must_equal 302
       resp.headers['cache-control'].must_equal 'private, max-age=600'
       resp.headers['content-length'].to_i.must_equal 0
@@ -77,7 +74,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'does not actually check if the file exists yet' do
-      resp = Excon.get("#{REMOTE_EPISODE}/does-not-exist/foobar.mp3", unique_agent)
+      resp = get_unique("#{REMOTE_EPISODE}/does-not-exist/foobar.mp3")
       resp.status.must_equal 302
       resp.headers['x-impressions'].to_i.must_equal 2
       resp.headers['x-depressions'].to_i.must_equal 0
