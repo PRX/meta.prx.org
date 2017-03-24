@@ -12,7 +12,7 @@ require 'test_helper'
 
    it 'return plain text media type' do
      resp = connection.get(query: {to_sign: 'hello'})
-     resp.headers['content-type'].must_equal 'text/plain'
+     resp.headers['Content-Type'].must_equal 'text/plain'
    end
 
    it 'return to correct signature' do
@@ -23,5 +23,7 @@ require 'test_helper'
    it 'enables CORS' do
      resp = Excon.options(CONFIG.UPLOAD_HOST)
      resp.status.wont_equal 403
+     resp.headers['Access-Control-Allow-Methods'].must_include 'GET'
+     resp.headers['Access-Control-Allow-Origin'].must_equal '*'
    end
  end
