@@ -14,7 +14,7 @@ File.open("#{File.dirname(__FILE__)}/../../env-example", 'r').each_line do |line
     # add scheme and check connection to hosts
     if CONFIG[name] && name.match(/_HOST$/)
       if CONFIG[name][0..3] != 'http'
-        scheme = CONFIG[name].match(/.*\.prxu?\.(?:org|tech)$/) ? 'https' : 'http'
+        scheme = CONFIG[name].match(/.*\.prxu?\.(?:org|tech)\.?$/) ? 'https' : 'http'
         CONFIG[name] = "#{scheme}://#{CONFIG[name]}"
       end
       begin
