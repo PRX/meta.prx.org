@@ -12,7 +12,7 @@ describe 'dovetail-redirect' do
     it 'redirects a feeder episode' do
       resp = get_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['content-length'].to_i.must_equal 0
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 1
@@ -39,7 +39,7 @@ describe 'dovetail-redirect' do
     it 'represses head requests' do
       resp = head_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 0
       resp.headers['x-repressions'].to_i.must_equal 1
@@ -64,7 +64,7 @@ describe 'dovetail-redirect' do
     it 'redirects a raw mp3 file' do
       resp = get_unique("#{REMOTE_EPISODE}/#{REMOTE_GUID}/noise.mp3")
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['content-length'].to_i.must_equal 0
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 2
