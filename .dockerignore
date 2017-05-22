@@ -1,0 +1,9 @@
+tmp/*
+.git
+.gitignore
+.bundle
+docker-compose.yml
+Dockerfile
+.env
+env-example
+.DS_Store
