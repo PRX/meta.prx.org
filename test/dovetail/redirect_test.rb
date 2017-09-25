@@ -12,37 +12,37 @@ describe 'dovetail-redirect' do
     it 'redirects a feeder episode' do
       resp = get_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['content-length'].to_i.must_equal 0
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 1
-      resp.headers['x-depressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 0
       resp.headers['location'].must_match FEEDER_MATCHER
       resp.body.to_s.must_be_empty
     end
 
-    it 'depresses duplicate requests' do
+    it 'represses duplicate requests' do
       same_user_agent = unique_agent
       resp1 = Excon.get(FEEDER_EPISODE, same_user_agent)
       resp2 = Excon.get(FEEDER_EPISODE, same_user_agent)
       resp1.status.must_equal 302
       resp1.headers['x-not-impressed'].must_be_nil
       resp1.headers['x-impressions'].to_i.must_equal 1
-      resp1.headers['x-depressions'].to_i.must_equal 0
+      resp1.headers['x-repressions'].to_i.must_equal 0
       resp2.status.must_equal 302
       resp2.headers['x-not-impressed'].must_be_nil
-      resp2.headers['x-impressions'].to_i.must_equal 1
-      resp2.headers['x-depressions'].to_i.must_equal 1
+      resp2.headers['x-impressions'].to_i.must_equal 0
+      resp2.headers['x-repressions'].to_i.must_equal 1
       resp1.headers['location'].must_equal resp2.headers['location']
     end
 
-    it 'depresses head requests' do
+    it 'represses head requests' do
       resp = head_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['x-not-impressed'].must_be_nil
-      resp.headers['x-impressions'].to_i.must_equal 1
-      resp.headers['x-depressions'].to_i.must_equal 1
+      resp.headers['x-impressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 1
       resp.headers['location'].must_match FEEDER_MATCHER
     end
 
@@ -51,7 +51,7 @@ describe 'dovetail-redirect' do
       resp.status.must_equal 302
       resp.headers['x-not-impressed'].must_equal 'yes'
       resp.headers['x-impressions'].to_i.must_equal 1
-      resp.headers['x-depressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 0
     end
 
   end
@@ -64,11 +64,11 @@ describe 'dovetail-redirect' do
     it 'redirects a raw mp3 file' do
       resp = get_unique("#{REMOTE_EPISODE}/#{REMOTE_GUID}/noise.mp3")
       resp.status.must_equal 302
-      resp.headers['cache-control'].must_equal 'private, max-age=600'
+      resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
       resp.headers['content-length'].to_i.must_equal 0
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 2
-      resp.headers['x-depressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 0
       resp.headers['location'].must_match(/\/test_audio_remote\/[^\/]+\/noise\.mp3$/)
       resp.body.to_s.must_be_empty
     end
@@ -77,7 +77,7 @@ describe 'dovetail-redirect' do
       resp = get_unique("#{REMOTE_EPISODE}/does-not-exist/foobar.mp3")
       resp.status.must_equal 302
       resp.headers['x-impressions'].to_i.must_equal 2
-      resp.headers['x-depressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 0
       resp.headers['location'].must_match(/test_audio_remote\/[^\/]+\/foobar\.mp3$/)
     end
 
