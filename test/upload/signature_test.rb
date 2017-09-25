@@ -15,15 +15,16 @@ require 'test_helper'
      resp.headers['Content-Type'].must_equal 'text/plain'
    end
 
-   it 'return to correct signature' do
+   it 'return correct signature' do
      resp = connection.get(query: {to_sign: 'test'})
      resp.body.to_s.must_equal "TyhhPs0RA37JFn+0oWNdm25HgBc="
    end
 
    it 'enables CORS' do
-     resp = Excon.options(CONFIG.UPLOAD_HOST)
-     resp.status.wont_equal 403
+     resp = connection.options
+     resp.wont_be_nil
      resp.headers['Access-Control-Allow-Methods'].must_include 'GET'
+     resp.headers['Access-Control-Allow-Methods'].must_include 'OPTIONS'
      resp.headers['Access-Control-Allow-Origin'].must_equal '*'
    end
  end
