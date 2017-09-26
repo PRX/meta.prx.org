@@ -30,5 +30,9 @@ Rake::TestTask.new('test:publish') do |t|
   t.libs << 'test/support'
   t.pattern = "test/publish/*_test.rb"
 end
+Rake::TestTask.new('test:upload') do |t|
+  t.libs << 'test/support'
+  t.pattern = "test/upload/*_test.rb"
+end
 
 task default: :test

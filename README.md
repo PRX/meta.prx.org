@@ -16,6 +16,7 @@ bundle exec rake test
 # or run a single subset of tests
 bundle exec rake test:dovetail
 bundle exec rake test:publish
+bundle exec rake test:upload
 ```
 
 ### Load Tests

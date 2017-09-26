@@ -4,3 +4,4 @@ FEEDER_HOST=feeder-staging.prx.tech
 PUBLISH_HOST=publish-staging.prx.tech
 PUBLISH_USER=
 PUBLISH_PASS=
+UPLOAD_HOST=
