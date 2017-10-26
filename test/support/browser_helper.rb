@@ -6,6 +6,7 @@ require 'fileutils'
 require 'publish_dsl'
 
 SCREENSHOT_DIR = "#{File.dirname(__FILE__)}/../tmp"
+TEST_MP3 = "#{File.dirname(__FILE__)}/test.mp3"
 FileUtils.rm_rf(SCREENSHOT_DIR)
 
 Capybara.configure do |config|
@@ -18,6 +19,12 @@ Capybara.register_driver :poltergeist do |app|
   Capybara::Poltergeist::Driver.new(app, js_errors: false)
 end
 
+Capybara.default_max_wait_time = 5
+
+class NilLogger
+  def puts * ; end
+end
+
 class BrowserTestCase < Minitest::Spec
   include Capybara::DSL
   include Capybara::Minitest::Assertions
@@ -28,6 +35,20 @@ class BrowserTestCase < Minitest::Spec
   end
 
   def setup
+    debug = ENV['DEBUG'] == '1'
+    driver_options = {
+      js_errors: false,
+      logger: NilLogger.new,
+      phantomjs_logger: STDERR,
+      debug: false,
+      phantomjs_options: ['--load-images=no', '--ignore-ssl-errors=yes', '--web-security=false'],
+    }
+    if debug
+      driver_options[:phantomjs_options] << '--debug=true'
+    end
+    Capybara.register_driver :poltergeist do |app|
+      Capybara::Poltergeist::Driver.new app, driver_options
+    end
     Capybara.current_driver = :poltergeist
   end
 
