@@ -22,12 +22,14 @@ describe :publish, :js do
       delete_test_series_and_episodes!
     end
 
-    it 'creates new episode' do
+    it 'creates new episode with RSS feed' do
       random_str = SecureRandom.hex(10)
       series_url = create_series!(random_str)
       series_url.must_match(/\/series\/\d+/)
       episode_url = create_episode!(series_url, random_str)
       episode_url.must_match(/\/story\/\d+/)
+      mp3 = publish_fetch_rss_media_url(series_url)
+      assert(mp3.match(/\.mp3$/), 'Found mp3 url')
     end
   end
 end
