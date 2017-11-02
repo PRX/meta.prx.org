@@ -57,12 +57,12 @@ module Publish
       series_list_url = CONFIG.PUBLISH_HOST
       visit series_list_url
       start = profile_time(start, 'visit series list url done')
-      btn = find('a', text: /^View(ing)? All \d+/i)
+      btn = find('a', text: /^View(ing)? All [1-9]+/i) # /not/ 0
       expecting_series_count = btn.text.match(/(\d+)/)[1]
       start = profile_time(start, 'wait for View All button')
       series_links = {}
-      page.assert_selector('a', text: /^Test/, minimum: expecting_series_count.to_i)
-      all('a', text: /^Test/, minimum: expecting_series_count.to_i).each do |link|
+      page.assert_selector('a', text: /^Test Series \w{20}/, between: 1..expecting_series_count.to_i)
+      all('a', text: /^Test Series \w{20}/, between: 1..expecting_series_count.to_i).each do |link|
         series_url = link[:href]
         next if series_links[series_url]
         series_links[series_url] = true
