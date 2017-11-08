@@ -207,8 +207,17 @@ module Publish
       feed_url_el['value']
     end
 
+    def publish_feeder_podcast_url(series_url)
+      podcast_url = publish_podcast_feed_url(series_url)
+      # the rss link on the series page is the S3 version.
+      # we skip the S3 step and go right to the feeder version.
+      m = podcast_url.match(/(\d+)\/feed-rss.xml$/)
+      "#{CONFIG.FEEDER_HOST}/podcasts/#{m[1]}"
+    end
+
     def publish_fetch_rss_feed(series_url)
-      feed_url = publish_podcast_feed_url(series_url)
+      @_podcast_feeds ||= {}
+      feed_url = @_podcast_feeds[series_url] ||= publish_feeder_podcast_url(series_url)
 
       # maybe it's the S3 HTTP response headers, but the poltergeist browser will
       # cache the initial RSS response and not detect when the feed has changed,
@@ -231,7 +240,7 @@ module Publish
         break if tries >= max_tries
         rss = publish_fetch_rss_feed(series_url)
       end
-      rss.xpath('//rss/channel/item/media:content').attr('url').value
+      rss.xpath('//rss/channel/item/enclosure').attr('url').value
     end
 
     def set_upload_input_file(selector, path)
