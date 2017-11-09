@@ -184,7 +184,7 @@ module Publish
       start = profile_time(start, 'Clicked Save on Podcast Info')
       
       # wait for Saved in order to confirm XHR
-      find_button('Saved', disabled: true)
+      find_button('Saved', disabled: true, wait: 30)
 
       profile_time(start, 'series created')
       current_url
