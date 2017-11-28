@@ -26,6 +26,10 @@ Rake::TestTask.new('test:dovetail') do |t|
   t.libs << 'test/support'
   t.pattern = "test/dovetail/*_test.rb"
 end
+Rake::TestTask.new('test:metrics') do |t|
+  t.libs << 'test/support'
+  t.pattern = "test/metrics/*_test.rb"
+end
 Rake::TestTask.new('test:publish') do |t|
   t.libs << 'test/support'
   t.pattern = "test/publish/*_test.rb"
