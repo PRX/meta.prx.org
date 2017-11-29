@@ -7,7 +7,8 @@ describe 'dovetail-redirect' do
 
     FEEDER_GUID = '23166e58-e181-4c03-b52d-6f6746a1bced'
     FEEDER_EPISODE = "#{CONFIG.DOVETAIL_HOST}/test_feeder/#{FEEDER_GUID}/my_filename.mp3"
-    FEEDER_MATCHER = /\/test_feeder\/[^\/]+\/my_filename\.mp3$/
+    FEEDER_MATCHER = /\/test_feeder\/[^\/]+\/my_filename\.mp3/
+    REQID_MATCHER = /\?reqid=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
     it 'redirects a feeder episode' do
       resp = get_unique(FEEDER_EPISODE)
@@ -18,6 +19,7 @@ describe 'dovetail-redirect' do
       resp.headers['x-impressions'].to_i.must_equal 1
       resp.headers['x-repressions'].to_i.must_equal 0
       resp.headers['location'].must_match FEEDER_MATCHER
+      resp.headers['location'].must_match REQID_MATCHER
       resp.body.to_s.must_be_empty
     end
 
@@ -33,7 +35,8 @@ describe 'dovetail-redirect' do
       resp2.headers['x-not-impressed'].must_be_nil
       resp2.headers['x-impressions'].to_i.must_equal 0
       resp2.headers['x-repressions'].to_i.must_equal 1
-      resp1.headers['location'].must_equal resp2.headers['location']
+      resp1.headers['location'].wont_equal resp2.headers['location']
+      resp1.headers['location'].split('?').first.must_equal resp2.headers['location'].split('?').first
     end
 
     it 'represses head requests' do
@@ -69,7 +72,8 @@ describe 'dovetail-redirect' do
       resp.headers['x-not-impressed'].must_be_nil
       resp.headers['x-impressions'].to_i.must_equal 2
       resp.headers['x-repressions'].to_i.must_equal 0
-      resp.headers['location'].must_match(/\/test_audio_remote\/[^\/]+\/noise\.mp3$/)
+      resp.headers['location'].must_match(/\/test_audio_remote\/[^\/]+\/noise\.mp3/)
+      resp.headers['location'].must_match REQID_MATCHER
       resp.body.to_s.must_be_empty
     end
 
@@ -78,7 +82,8 @@ describe 'dovetail-redirect' do
       resp.status.must_equal 302
       resp.headers['x-impressions'].to_i.must_equal 2
       resp.headers['x-repressions'].to_i.must_equal 0
-      resp.headers['location'].must_match(/test_audio_remote\/[^\/]+\/foobar\.mp3$/)
+      resp.headers['location'].must_match(/test_audio_remote\/[^\/]+\/foobar\.mp3/)
+      resp.headers['location'].must_match REQID_MATCHER
     end
 
   end
