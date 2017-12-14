@@ -1,15 +1,15 @@
 # CI always looks for this string: PRX_
 version: 0.2
 env:
-  variables:
-    DOVETAIL_HOST: "dovetail.staging.prxu.org"
-    DOVETAIL_PROD_HOST: "dovetail.prxu.org"
-    FEEDER_HOST: "feeder.staging.prx.tech"
-    METRICS_HOST: "metrics.staging.prx.tech"
-    PUBLISH_HOST: "publish.staging.prx.tech"
-    PUBLISH_USER: "test@test.com"
-    PUBLISH_PASS: "test1234"
-    UPLOAD_HOST: "upload-5e12hsv5dh-us-east-1.staging.prx.tech"
+  parameter-store:
+    DOVETAIL_HOST: "/prx/test/meta.prx.org/DOVETAIL_HOST"
+    DOVETAIL_PROD_HOST: "/prx/test/meta.prx.org/DOVETAIL_PROD_HOST"
+    FEEDER_HOST: "/prx/test/meta.prx.org/FEEDER_HOST"
+    METRICS_HOST: "/prx/test/meta.prx.org/METRICS_HOST"
+    PUBLISH_HOST: "/prx/test/meta.prx.org/PUBLISH_HOST"
+    PUBLISH_PASS: "/prx/test/meta.prx.org/PUBLISH_PASS"
+    PUBLISH_USER: "/prx/test/meta.prx.org/PUBLISH_USER"
+    UPLOAD_HOST: "/prx/test/meta.prx.org/UPLOAD_HOST"
 phases:
   install:
     commands:
