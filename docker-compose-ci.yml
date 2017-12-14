@@ -1,4 +1,4 @@
-prxmeta:
+meta:
   build: .
   volumes:
     - .:/home
