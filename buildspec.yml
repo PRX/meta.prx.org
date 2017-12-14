@@ -13,6 +13,7 @@ env:
 phases:
   pre_build:
     commands:
+      - "cd $(ls -d */|head -n 1)"
       - bundle install
   build:
     commands:
