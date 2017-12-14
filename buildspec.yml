@@ -20,4 +20,4 @@ phases:
     commands:
       - "cd $(ls -d */|head -n 1)"
       - "docker-compose -f docker-compose-ci.yml build"
-      - "docker-compose -f docker-compose-ci.yml run test"
+      - "docker-compose -f docker-compose-ci.yml up"
