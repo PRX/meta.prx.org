@@ -1,4 +1,14 @@
-version: 0.1
+version: 0.2
+env:
+  variables:
+    DOVETAIL_HOST: "dovetail.staging.prxu.org"
+    DOVETAIL_PROD_HOST: "dovetail.prxu.org"
+    FEEDER_HOST: "feeder.staging.prx.tech"
+    METRICS_HOST: "metrics.staging.prx.tech"
+    PUBLISH_HOST: "publish.staging.prx.tech"
+    PUBLISH_USER: "test@test.com"
+    PUBLISH_PASS: "test1234"
+    UPLOAD_HOST: "upload-5e12hsv5dh-us-east-1.staging.prx.tech"
 phases:
   pre_build:
     commands:
@@ -6,6 +16,3 @@ phases:
   build:
     commands:
       - bundle exec rake
-artifacts:
-  files:
-    - README.md
