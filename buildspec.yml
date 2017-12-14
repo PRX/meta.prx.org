@@ -1,3 +1,4 @@
+# CI always looks for this string: PRX_
 version: 0.2
 env:
   variables:
