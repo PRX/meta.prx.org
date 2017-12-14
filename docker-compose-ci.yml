@@ -4,3 +4,12 @@ prxmeta:
     - .:/home
   entrypoint: bundle exec rake
   command: test
+  environment:
+    - DOVETAIL_HOST
+    - DOVETAIL_PROD_HOST
+    - FEEDER_HOST
+    - METRICS_HOST
+    - PUBLISH_HOST
+    - PUBLISH_USER
+    - PUBLISH_PASS
+    - UPLOAD_HOST
