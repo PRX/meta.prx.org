@@ -2,7 +2,7 @@ require 'test_helper'
 
  describe 'upload-signature' do
    let(:connection) do
-     Excon.new("#{CONFIG.UPLOAD_HOST}/signature")
+     Excon.new("#{CONFIG.UPLOAD_HOST}/prod/signature")
    end
 
    it 'returns 400 with nothing to sign' do

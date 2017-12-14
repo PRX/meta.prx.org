@@ -20,7 +20,7 @@ phases:
     commands:
       - "cd $(ls -d */|head -n 1)"
       - "docker-compose -f docker-compose-ci.yml build"
-      - "docker-compose -f docker-compose-ci.yml up"
+      - "docker-compose -f docker-compose-ci.yml run meta"
   post_build:
     commands:
       - 'curl -sO "https://raw.githubusercontent.com/PRX/Infrastructure/master/ci/utility/post_build.sh" && chmod +x post_build.sh && bash ./post_build.sh'
