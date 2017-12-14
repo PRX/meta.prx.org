@@ -11,10 +11,13 @@ env:
     PUBLISH_PASS: "test1234"
     UPLOAD_HOST: "upload-5e12hsv5dh-us-east-1.staging.prx.tech"
 phases:
-  pre_build:
+  install:
     commands:
-      - "cd $(ls -d */|head -n 1)"
-      - bundle install
+      - 'echo "Installing docker-compose..."'
+      - 'COMPOSE="https://github.com/docker/compose/releases/download/1.11.2/docker-compose-$(uname -s)-$(uname -m)" && curl -sL $COMPOSE -o /usr/local/bin/docker-compose'
+      - "chmod +x /usr/local/bin/docker-compose"
   build:
     commands:
-      - bundle exec rake
+      - "cd $(ls -d */|head -n 1)"
+      - "docker-compose -f docker-compose-ci.yml build"
+      - "docker-compose -f docker-compose-ci.yml run test"

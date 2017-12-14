@@ -1,0 +1,6 @@
+prxmeta:
+  build: .
+  volumes:
+    - .:/home
+  entrypoint: bundle exec rake
+  command: test
