@@ -1,11 +1,26 @@
-version: 0.1
+# CI always looks for this string: PRX_
+version: 0.2
+env:
+  parameter-store:
+    DOVETAIL_HOST: "/prx/test/meta.prx.org/DOVETAIL_HOST"
+    DOVETAIL_PROD_HOST: "/prx/test/meta.prx.org/DOVETAIL_PROD_HOST"
+    FEEDER_HOST: "/prx/test/meta.prx.org/FEEDER_HOST"
+    METRICS_HOST: "/prx/test/meta.prx.org/METRICS_HOST"
+    PUBLISH_HOST: "/prx/test/meta.prx.org/PUBLISH_HOST"
+    PUBLISH_PASS: "/prx/test/meta.prx.org/PUBLISH_PASS"
+    PUBLISH_USER: "/prx/test/meta.prx.org/PUBLISH_USER"
+    UPLOAD_HOST: "/prx/test/meta.prx.org/UPLOAD_HOST"
 phases:
-  pre_build:
+  install:
     commands:
-      - bundle install
+      - 'echo "Installing docker-compose..."'
+      - 'COMPOSE="https://github.com/docker/compose/releases/download/1.11.2/docker-compose-$(uname -s)-$(uname -m)" && curl -sL $COMPOSE -o /usr/local/bin/docker-compose'
+      - "chmod +x /usr/local/bin/docker-compose"
   build:
     commands:
-      - bundle exec rake
-artifacts:
-  files:
-    - README.md
+      - "cd $(ls -d */|head -n 1)"
+      - "docker-compose -f docker-compose-ci.yml build"
+      - "docker-compose -f docker-compose-ci.yml run meta"
+  post_build:
+    commands:
+      - 'curl -sO "https://raw.githubusercontent.com/PRX/Infrastructure/master/ci/utility/post_build.sh" && chmod +x post_build.sh && bash ./post_build.sh'
