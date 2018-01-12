@@ -8,6 +8,7 @@ describe :metrics, :js do
     end
 
     it 'registers when podcast is played' do
+      skip "set BLACKBOX=1 to fully test integration environment" unless ENV['BLACKBOX']
       random_str = SecureRandom.hex(10)
       series_url = create_series!(random_str)
       _episode_url = create_episode!(series_url, random_str) # return var currently unused
@@ -34,7 +35,7 @@ describe :metrics, :js do
   end
 
   def metrics_url(series_url)
-    series_id = series_url.match(/series\/(\d+)\//)[1]
+    series_id = series_url.match(/series\/(\d+)/)[1]
     CONFIG.METRICS_HOST + "/#{series_id}/downloads/episodes/daily"
   end
 end

@@ -24,6 +24,17 @@ Use the `PROFILE_TIME` environment variable to trigger profiling information as 
 PROFILE_TIME=1 bundle exec rake test:metrics
 ```
 
+Use the `DEBUG` environment variable to trigger additional output as the tests run:
+```
+DEBUG=1 bundle exec rake test:metrics
+```
+
+Use the `BLACKBOX` environment variable to trigger additional integration tests that rely
+on asynchronous, eventually consistent systems (as for publish.prx.org).
+```
+BLACKBOX=1 bundle exec rake test:publish
+```
+
 ### Load Tests
 
 Non-CI load testing is also housed in this repo.  To test dovetail, just run `bundle exec rake load:dovetail`.  You can also specify the total-stitch-requests to make, and the concurrency of downloads: `bundle exec rake load:dovetail[200,10]`.

@@ -51,6 +51,7 @@ module Publish
     end
 
     def delete_test_series_and_episodes!
+      skip "set BLACKBOX=1 to fully test integration environment" unless ENV['BLACKBOX']
       publish_login!
       ttl_start = Time.now
       start = profile_time(ttl_start, 'Deleting test series and episodes - start')
