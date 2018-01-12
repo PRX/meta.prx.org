@@ -23,7 +23,7 @@ describe :publish, :js do
     end
 
     it 'creates new episode with RSS feed' do
-      skip "set BLACKBOX=1 to fully test integration environment" unless ENV['BLACKBOX']
+      skip "set BLACKBOX=1 to fully test integration environment" unless blackbox_required?
       random_str = SecureRandom.hex(10)
       series_url = create_series!(random_str)
       series_url.must_match(/\/series\/\d+/)

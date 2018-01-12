@@ -51,7 +51,7 @@ module Publish
     end
 
     def delete_test_series_and_episodes!
-      skip "set BLACKBOX=1 to fully test integration environment" unless ENV['BLACKBOX']
+      skip "set BLACKBOX=1 to fully test integration environment" unless blackbox_required?
       publish_login!
       ttl_start = Time.now
       start = profile_time(ttl_start, 'Deleting test series and episodes - start')
@@ -318,6 +318,14 @@ module Publish
 
     def debug?
       ENV['DEBUG'] == '1'
+    end
+
+    def blackbox_required?
+      unless ENV['BLACKBOX']
+        puts "set BLACKBOX=1 to run expensive integration tests"
+        return false
+      end
+      return true
     end
   end
 end

@@ -8,7 +8,7 @@ describe :metrics, :js do
     end
 
     it 'registers when podcast is played' do
-      skip "set BLACKBOX=1 to fully test integration environment" unless ENV['BLACKBOX']
+      skip "set BLACKBOX=1 to fully test integration environment" unless blackbox_required?
       random_str = SecureRandom.hex(10)
       series_url = create_series!(random_str)
       _episode_url = create_episode!(series_url, random_str) # return var currently unused
