@@ -19,6 +19,11 @@ bundle exec rake test:publish
 bundle exec rake test:upload
 ```
 
+Use the `PROFILE_TIME` environment variable to trigger profiling information as the tests run:
+```
+PROFILE_TIME=1 bundle exec rake test:metrics
+```
+
 ### Load Tests
 
 Non-CI load testing is also housed in this repo.  To test dovetail, just run `bundle exec rake load:dovetail`.  You can also specify the total-stitch-requests to make, and the concurrency of downloads: `bundle exec rake load:dovetail[200,10]`.
