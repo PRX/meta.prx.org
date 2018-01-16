@@ -21,7 +21,7 @@ describe :metrics, :js do
       # our test series reported (as above)?
 
       found_episode_plays = false
-      tbody = find('metrics-downloads-table div.table-wrapper table.scroll-x tbody')
+      tbody = find('metrics-downloads-table div.table-wrapper table.sticky tbody')
       tbody.all('tr').each do |tr|
         found_episode_plays = true
         #tr.text.must_match(/ [1-9]+ /) # non-zero number of plays - TODO see comment above re: wait time.
