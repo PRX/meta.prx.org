@@ -8,11 +8,15 @@ describe :metrics, :js do
     end
 
     it 'registers when podcast is played' do
+      skip "set BLACKBOX=1 to fully test integration environment" unless blackbox_required?
       random_str = SecureRandom.hex(10)
-      mp3 = setup_fixtures(random_str)
+      series_url = create_series!(random_str)
+      _episode_url = create_episode!(series_url, random_str) # return var currently unused
+      mp3 = publish_fetch_rss_media_url(series_url)
+
       visit mp3 # "play" the audio
 
-      visit CONFIG.METRICS_HOST
+      visit metrics_url(series_url)
       page.must_have_content "Test Series #{random_str}"
       page.must_have_content "Test Episode #{random_str}"
 
@@ -28,11 +32,10 @@ describe :metrics, :js do
       end
       assert(found_episode_plays, 'found episode plays')
     end
+  end
 
-    def setup_fixtures(random_str)
-      series_url = create_series!(random_str)
-      create_episode!(series_url, random_str)
-      publish_fetch_rss_media_url(series_url)
-    end
+  def metrics_url(series_url)
+    series_id = series_url.match(/series\/(\d+)/)[1]
+    CONFIG.METRICS_HOST + "/#{series_id}/downloads/episodes/daily"
   end
 end
