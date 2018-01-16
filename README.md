@@ -1,7 +1,5 @@
 # META.prx.org
 
-[![Build Status](https://snap-ci.com/PRX/meta.prx.org/branch/master/build_image)](https://snap-ci.com/PRX/meta.prx.org/branch/master)
-
 ### Acceptance Tests
 
 This repo houses the acceptance tests for all PRX services.  The tests will confirm that everything in the staging environment is playing together nicely, and then assemble a complete list of staging-service-versions to deploy to production, via SnapCI.
