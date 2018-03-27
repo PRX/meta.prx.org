@@ -55,7 +55,10 @@ describe 'dovetail-programs' do
         new_stitch.status.must_equal 200
         new_stitch.headers['content-disposition'].must_equal 'attachment'
         new_stitch.headers['content-type'].must_equal 'audio/mpeg'
-        old_stitch.status.must_equal 200
+        if old_stitch.status != 200
+          warn "Got #{old_stitch.status} from http://#{old_stitch.host}#{old_stitch.path}"
+          old_stitch.status.must_equal 200
+        end
         old_stitch.headers['content-disposition'].must_equal 'attachment'
         old_stitch.headers['content-type'].must_equal 'audio/mpeg'
 
