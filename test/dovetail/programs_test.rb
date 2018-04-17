@@ -52,9 +52,11 @@ describe 'dovetail-programs' do
       new_stitch.status.must_equal 200
       new_stitch.headers['content-disposition'].must_match(/^attachment/)
       new_stitch.headers['content-type'].must_equal 'audio/mpeg'
+      new_stitch.headers['x-cache'].must_include 'Miss'
       old_stitch.status.must_equal 200
       old_stitch.headers['content-disposition'].must_match(/^attachment/)
       old_stitch.headers['content-type'].must_equal 'audio/mpeg'
+      new_stitch.headers['x-cache'].must_include 'Miss'
 
       # compare the ffprobe output first
       new_probe = `ffprobe #{new_file} 2>&1`.gsub(/.+#{name}.new.mp3':\n/m, '')
