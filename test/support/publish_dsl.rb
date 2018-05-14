@@ -19,7 +19,7 @@ module Publish
         fill_in('Enter your email address', with: CONFIG.PUBLISH_USER)
         fill_in('password', with: CONFIG.PUBLISH_PASS)
         click_button('Sign In')
-        cookie = page.driver.cookies.find {|c| c.first.match(/^_prx_session/)}.last
+        cookie = page.driver.cookies.find {|c| c.first.match(/^_prx_id/)}.last
         PRX_SESSION[:name] = cookie.name
         PRX_SESSION[:value] = cookie.value
         PRX_SESSION[:options] = {domain: cookie.domain, path: cookie.path}
@@ -183,7 +183,7 @@ module Publish
       end
       click_button 'Save'
       start = profile_time(start, 'Clicked Save on Podcast Info')
-      
+
       # wait for Saved in order to confirm XHR
       find_button('Saved', disabled: true)
 
