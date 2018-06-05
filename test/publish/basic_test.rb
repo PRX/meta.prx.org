@@ -10,9 +10,9 @@ describe :publish, :js do
     it 'can login' do
       publish_login!
       visit CONFIG.PUBLISH_HOST
-      page.must_have_content 'Home'
-      page.must_have_content 'Your Series'
-      page.must_have_content 'Your Standalone Episodes'
+      page.must_have_content(/Home/i)
+      page.must_have_content(/Your Series/i)
+      page.must_have_content(/Your Standalone Episodes/i)
     end
   end
 
