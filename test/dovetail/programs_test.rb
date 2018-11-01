@@ -24,6 +24,9 @@ describe 'dovetail-programs' do
     if EPISODE_THREADS.empty?
       EPISODES.each do |name, path|
         loc, prod_loc = get_redirect_locations(path)
+        puts "CHECKING: #{name}:"
+        puts "  #{loc}"
+        puts "  #{prod_loc}"
         EPISODE_THREADS[name] = Thread.new do
           EPISODE_RESPONSES[name] = [nil, nil]
           EPISODE_FILES[name] = [tmp_file(name, 'new.mp3'), tmp_file(name, 'old.mp3')]
