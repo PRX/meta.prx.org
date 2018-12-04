@@ -5,9 +5,7 @@ describe 'dovetail-programs' do
   include Dovetail::DSL
 
   EPISODES = {
-    'criminal' => 'prod_criminal/23166e58-e181-4c03-b52d-6f6746a1bced/Episode_35__Pen_and_Paper.mp3',
-    'memory'   => 'prod_memory/c9dfaa10-7b21-4804-9d5e-7f55dfbefc24/thememorypalace.mp3',
-    # 'serial'   => 'prod_serial/b10f2326-b3b9-478e-a74d-22c460946316/serial-s02-e05.mp3',
+    'test_feeder_two_segment' => 'test_feeder_two_segment/2097919b-f33a-4437-aacf-bd08abb2e91b/test.mp3',
   }
   EPISODE_THREADS = {}
   EPISODE_RESPONSES = {}
@@ -24,9 +22,6 @@ describe 'dovetail-programs' do
     if EPISODE_THREADS.empty?
       EPISODES.each do |name, path|
         loc, prod_loc = get_redirect_locations(path)
-        puts "CHECKING: #{name}:"
-        puts "  #{loc}"
-        puts "  #{prod_loc}"
         EPISODE_THREADS[name] = Thread.new do
           EPISODE_RESPONSES[name] = [nil, nil]
           EPISODE_FILES[name] = [tmp_file(name, 'new.mp3'), tmp_file(name, 'old.mp3')]
