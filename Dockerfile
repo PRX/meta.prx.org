@@ -1,14 +1,14 @@
 FROM ruby:2.3.6
 
 # ffmpeg from static build
-RUN apt-get update && \
-    apt-get install -y xz-utils && \
-    cd /root && \
-    wget -q https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-64bit-static.tar.xz && \
-    tar xvJf ffmpeg-git-64bit-static.tar.xz && \
-    mv ffmpeg-git-*-64bit-static/ffmpeg ffmpeg-git-*-64bit-static/ffprobe /usr/local/bin && \
-    apt-get clean && \
-    rm -rf /root/ffmpeg* /var/lib/apt/lists/* /var/cache/apt/*
+RUN cd /root && \
+    curl -s https://s3.amazonaws.com/prx-tech/archives/ffmpeg-release-64bit-static.tar.xz | unxz | tar x && \
+    mv ffmpeg-*-static/ffmpeg /usr/local/bin/ && \
+    mv ffmpeg-*-static/ffprobe /usr/local/bin/ && \
+    rm -rf /root/ffmpeg*
+
+# ffmpeg output may include non-ascii characters
+ENV LANG=C.UTF-8
 
 # phantomjs
 RUN apt-get update && \
