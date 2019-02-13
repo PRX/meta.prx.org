@@ -33,15 +33,14 @@ describe 'dovetail-redirect' do
       resp2.headers['x-not-impressed'].must_be_nil
       resp2.headers['x-impressions'].to_i.must_equal 0
       resp2.headers['x-repressions'].to_i.must_equal 1
-      resp1.headers['location'].wont_equal resp2.headers['location']
-      resp1.headers['location'].split('?').first.must_equal resp2.headers['location'].split('?').first
+      resp1.headers['location'].must_equal resp2.headers['location']
     end
 
     it 'represses head requests' do
       resp = head_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
       resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
-      resp.headers['x-not-impressed'].must_be_nil
+      resp.headers['x-not-impressed'].must_equal 'yes'
       resp.headers['x-impressions'].to_i.must_equal 0
       resp.headers['x-repressions'].to_i.must_equal 1
       resp.headers['location'].must_match FEEDER_MATCHER
@@ -51,8 +50,8 @@ describe 'dovetail-redirect' do
       resp = get_unique("#{FEEDER_EPISODE}?noImp")
       resp.status.must_equal 302
       resp.headers['x-not-impressed'].must_equal 'yes'
-      resp.headers['x-impressions'].to_i.must_equal 1
-      resp.headers['x-repressions'].to_i.must_equal 0
+      resp.headers['x-impressions'].to_i.must_equal 0
+      resp.headers['x-repressions'].to_i.must_equal 1
     end
 
   end
