@@ -15,8 +15,7 @@ Capybara.configure do |config|
 end
 
 Capybara.register_driver :poltergeist do |app|
-  # TODO: Intl raising some js errors
-  Capybara::Poltergeist::Driver.new(app, js_errors: false)
+  Capybara::Poltergeist::Driver.new(app, js_errors: true)
 end
 
 Capybara.default_max_wait_time = 5
@@ -37,8 +36,7 @@ class BrowserTestCase < Minitest::Spec
   def setup
     debug = ENV['DEBUG'] == '1'
     driver_options = {
-      js_errors: false,
-      logger: NilLogger.new,
+      js_errors: true,
       phantomjs_logger: STDERR,
       debug: false,
       phantomjs_options: ['--load-images=no', '--ignore-ssl-errors=yes', '--web-security=false'],
