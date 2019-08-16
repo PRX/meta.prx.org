@@ -173,16 +173,10 @@ module Publish
 
       click_link 'Podcast Info'
       click_button 'Create Podcast'
-      # find('#category .dropdown-toggle').click
-      # within '#category .dropdown-menu' do
-      #   first('.dropdown-item').find('a').click
       find('#category').click
       within '#category' do
         first('.ng-option').find('span').click
       end
-      # find('#explicit .dropdown-toggle').click
-      # within '#explicit .dropdown-menu' do
-      #   all('.dropdown-item')[1].find('a').click
       find('#explicit').click
       within '#explicit' do
         all('.ng-option')[1].find('span').click
