@@ -173,13 +173,13 @@ module Publish
 
       click_link 'Podcast Info'
       click_button 'Create Podcast'
-      find('#category .dropdown-toggle').click
-      within '#category .dropdown-menu' do
-        first('.dropdown-item').find('a').click
+      find('#category').click
+      within '#category' do
+        first('.ng-option').find('span').click
       end
-      find('#explicit .dropdown-toggle').click
-      within '#explicit .dropdown-menu' do
-        all('.dropdown-item')[1].find('a').click
+      find('#explicit').click
+      within '#explicit' do
+        all('.ng-option')[1].find('span').click
       end
       click_button 'Save'
       start = profile_time(start, 'Clicked Save on Podcast Info')
@@ -249,6 +249,8 @@ module Publish
       Capybara.ignore_hidden_elements = false
       upload_input = find(selector)
       upload_input.set(path)
+      # click the Upload File button
+      find(selector + '~label.button').click
       Capybara.ignore_hidden_elements = true
     end
 
@@ -261,8 +263,12 @@ module Publish
     end
 
     def publish_wait_for_publish_button
-      find_button('Publish', wait: 30)
-      find('p', text: 'Ready to publish', wait: 10)
+      find("option[value='published']").select_option
+      find('dd', text: 'Publish Immediately', wait: 10)
+      # Shows modal: "Validation errors You must upload 1 segments (got 0)"
+      # find_button('Found 1 Problem', wait: 30).click
+      # page.must_have_content 'Publish Now'
+      find_button('Publish Now', wait: 30)
     end
 
     def create_episode!(series_url, random_str = SecureRandom.hex(10))
@@ -283,7 +289,7 @@ module Publish
       start = profile_time(start, 'reached New Episode page')
 
       current_url.must_match(/\/story\/new\/\d+/)
-      page.must_have_content 'Create Episode'
+      page.must_have_content 'CREATE EPISODE'
       publish_wait_for_title
 
       fill_in 'Title', with: "Test Episode #{random_str}"
@@ -302,15 +308,15 @@ module Publish
       start = profile_time(start, 'Test Episode created - waiting for publish button')
 
       publish_wait_for_publish_button
-      find_button('Publish').trigger('click') # avoid modal overlay masking ability to click_button
+      find_button('Publish Now').trigger('click') # avoid modal overlay masking ability to click_button
 
       start = profile_time(start, 'Publish button clicked')
 
       publish_wait
 
-      start = profile_time(start, 'Looking for Edit button to confirm published status')
-      # waiting for the text 'Complete' or 'Status: Published' does not seem to work..
-      find_button('Edit')
+      start = profile_time(start, 'Looking to confirm published status')
+      # Status box header PUBLISHED
+      page.must_have_content 'PUBLISHED'
 
       profile_time(start, 'episode created')
       current_url
