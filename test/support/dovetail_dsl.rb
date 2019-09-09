@@ -4,16 +4,24 @@ require 'uri'
 
 module Dovetail
   module DSL
-    def unique_agent
-      {headers: {'User-Agent': "meta.prx.org tests #{SecureRandom.uuid}"}}
+    def meta_headers
+      {headers: {'User-Agent': "meta.prx.org tests"}}
+    end
+
+    def unique_url(url)
+      parsed = URI.parse(url)
+      query_parts = URI.decode_www_form(String(parsed.query))
+      query_parts << ['_v', SecureRandom.uuid]
+      parsed.query = URI.encode_www_form(query_parts)
+      parsed.to_s
     end
 
     def get_unique(url)
-      Excon.get(url, unique_agent)
+      Excon.get(unique_url(url), meta_headers)
     end
 
     def head_unique(url)
-      Excon.head(url, unique_agent)
+      Excon.head(unique_url(url), meta_headers)
     end
 
     def get_redirect_locations(path)

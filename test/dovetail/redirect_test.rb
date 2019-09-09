@@ -22,9 +22,9 @@ describe 'dovetail-redirect' do
     end
 
     it 'represses duplicate requests' do
-      same_user_agent = unique_agent
-      resp1 = Excon.get(FEEDER_EPISODE, same_user_agent)
-      resp2 = Excon.get(FEEDER_EPISODE, same_user_agent)
+      same_url = unique_url(FEEDER_EPISODE)
+      resp1 = Excon.get(same_url, meta_headers)
+      resp2 = Excon.get(same_url, meta_headers)
       resp1.status.must_equal 302
       resp1.headers['x-not-impressed'].must_be_nil
       resp1.headers['x-impressions'].to_i.must_equal 1
