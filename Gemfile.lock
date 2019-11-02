@@ -22,7 +22,7 @@ GEM
     filesize (0.1.1)
     method_source (0.8.2)
     mini_mime (0.1.4)
-    mini_portile2 (2.3.0)
+    mini_portile2 (2.4.0)
     minitest (5.10.3)
     minitest-focus (1.1.2)
       minitest (>= 4, < 6)
@@ -31,8 +31,8 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    nokogiri (1.8.2)
-      mini_portile2 (~> 2.3.0)
+    nokogiri (1.10.4)
+      mini_portile2 (~> 2.4.0)
     poltergeist (1.14.0)
       capybara (~> 2.1)
       cliver (~> 0.3.1)
