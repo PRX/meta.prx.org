@@ -4,6 +4,18 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     ansi (1.5.0)
+    aws-eventstream (1.1.0)
+    aws-partitions (1.330.0)
+    aws-sdk-core (3.100.0)
+      aws-eventstream (~> 1, >= 1.0.2)
+      aws-partitions (~> 1, >= 1.239.0)
+      aws-sigv4 (~> 1.1)
+      jmespath (~> 1.0)
+    aws-sdk-states (1.29.1)
+      aws-sdk-core (~> 3, >= 3.99.0)
+      aws-sigv4 (~> 1.1)
+    aws-sigv4 (1.2.0)
+      aws-eventstream (~> 1, >= 1.0.2)
     builder (3.2.3)
     capybara (2.15.4)
       addressable
@@ -20,6 +32,7 @@ GEM
     dotenv (2.2.0)
     excon (0.55.0)
     filesize (0.1.1)
+    jmespath (1.4.0)
     method_source (0.8.2)
     mini_mime (0.1.4)
     mini_portile2 (2.3.0)
@@ -58,6 +71,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aws-sdk-states (~> 1)
   capybara
   capybara_minitest_spec
   dotenv

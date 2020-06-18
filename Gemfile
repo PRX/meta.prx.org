@@ -10,7 +10,7 @@ gem 'poltergeist'
 gem 'excon'
 gem 'nokogiri'
 gem 'filesize'
-gem 'aws-sdk', '~> 3'
+gem 'aws-sdk-states', '~> 1'
 
 group :development do
   gem 'dotenv'
