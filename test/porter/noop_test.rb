@@ -2,7 +2,9 @@ require 'test_helper'
 require 'aws-sdk-states'
 require 'json'
 
-step_functions = Aws::States::Client.new
+step_functions = Aws::States::Client.new(
+  region: 'us-east-1'
+)
 
 describe :porter, :execution do
   describe :noop do
