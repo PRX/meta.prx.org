@@ -10,6 +10,7 @@ env:
     PUBLISH_PASS: "/prx/test/meta.prx.org/PUBLISH_PASS"
     PUBLISH_USER: "/prx/test/meta.prx.org/PUBLISH_USER"
     UPLOAD_HOST: "/prx/test/meta.prx.org/UPLOAD_HOST"
+    PORTER_STATE_MACHINE_ARN: "/prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN"
 phases:
   install:
     commands:
