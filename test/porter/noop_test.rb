@@ -6,7 +6,7 @@ step_functions = Aws::States::Client.new(
   region: 'us-east-1'
 )
 
-describe :porter, :execution do
+describe :porter do
   describe :noop do
     it 'returns the basic execution output' do
       req = step_functions.start_execution({
