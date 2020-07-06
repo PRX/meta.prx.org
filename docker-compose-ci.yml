@@ -5,6 +5,7 @@ meta:
   entrypoint: bundle exec rake
   command: test
   environment:
+    - AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
     - DOVETAIL_HOST
     - DOVETAIL_PROD_HOST
     - FEEDER_HOST
@@ -13,3 +14,4 @@ meta:
     - PUBLISH_USER
     - PUBLISH_PASS
     - UPLOAD_HOST
+    - PORTER_STATE_MACHINE_ARN
