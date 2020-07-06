@@ -8,7 +8,7 @@ step_functions = Aws::States::Client.new(
 
 describe :porter do
   describe :ingesterror do
-    it 'returns the basic execution output' do
+    it 'correctly handles an ingest error' do
       req = step_functions.start_execution({
         state_machine_arn: CONFIG.PORTER_STATE_MACHINE_ARN,
         input: {

@@ -8,7 +8,7 @@ step_functions = Aws::States::Client.new(
 
 describe :porter do
   describe :inspect do
-    it 'returns the basic execution output' do
+    it 'returns execution output for an inspect task' do
       req = step_functions.start_execution({
         state_machine_arn: CONFIG.PORTER_STATE_MACHINE_ARN,
         input: {
