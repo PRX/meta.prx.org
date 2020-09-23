@@ -11,6 +11,7 @@ env:
     PUBLISH_USER: "/prx/test/meta.prx.org/PUBLISH_USER"
     UPLOAD_HOST: "/prx/test/meta.prx.org/UPLOAD_HOST"
     PORTER_STATE_MACHINE_ARN: "/prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN"
+    PORTER_TEST_BUCKET_NAME: '/prx/test/meta.prx.org/PORTER_TEST_BUCKET_NAME'
 phases:
   install:
     runtime-versions:
