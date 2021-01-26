@@ -5,7 +5,7 @@ describe 'dovetail-programs' do
   include Dovetail::DSL
 
   EPISODES = {
-    'test_feeder_two_segment' => 'test_feeder_two_segment/2097919b-f33a-4437-aacf-bd08abb2e91b/test.mp3',
+    'test_feeder_two_segment' => 'test_feeder_two_segment/fc3130cc-66e4-486c-9e37-aed0a6d71682/test.mp3',
   }
   EPISODE_THREADS = {}
   EPISODE_RESPONSES = {}
