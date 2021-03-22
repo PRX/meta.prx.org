@@ -17,7 +17,7 @@ require 'test_helper'
 
    it 'return correct signature' do
      resp = connection.get(query: {to_sign: 'test'})
-     resp.body.to_s.must_equal "TyhhPs0RA37JFn+0oWNdm25HgBc="
+     resp.body.to_s.must_equal "1IlgT4ChsccMAJzmqW+fyYY8L3c="
    end
 
    it 'enables CORS' do
