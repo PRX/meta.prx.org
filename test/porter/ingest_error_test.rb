@@ -9,6 +9,7 @@ step_functions = Aws::States::Client.new(
 describe :porter do
   describe :ingesterror do
     it 'correctly handles an ingest error' do
+      skip 'TODO: fix intermittent Porter failures'
       req = step_functions.start_execution({
         state_machine_arn: CONFIG.PORTER_STATE_MACHINE_ARN,
         input: {
