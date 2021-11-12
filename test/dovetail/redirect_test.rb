@@ -10,6 +10,7 @@ describe 'dovetail-redirect' do
     FEEDER_MATCHER = /\/test_feeder\/[^\/]+\/my_filename\.mp3/
 
     it 'redirects a feeder episode' do
+      skip
       resp = get_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
       resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
@@ -22,6 +23,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'represses duplicate requests' do
+      skip
       same_url = unique_url(FEEDER_EPISODE)
       resp1 = Excon.get(same_url, meta_headers)
       resp2 = Excon.get(same_url, meta_headers)
@@ -37,6 +39,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'represses head requests' do
+      skip
       resp = head_unique(FEEDER_EPISODE)
       resp.status.must_equal 302
       resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
@@ -47,6 +50,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'respects the noImp parameter' do
+      skip
       resp = get_unique("#{FEEDER_EPISODE}?noImp")
       resp.status.must_equal 302
       resp.headers['x-not-impressed'].must_equal 'yes'
@@ -62,6 +66,7 @@ describe 'dovetail-redirect' do
     REMOTE_GUID = 'b5b5777c-ebbf-43e5-b914-22c4dcc394be'
 
     it 'redirects a raw mp3 file' do
+      skip
       resp = get_unique("#{REMOTE_EPISODE}/#{REMOTE_GUID}/noise.mp3")
       resp.status.must_equal 302
       resp.headers['cache-control'].must_match(/private, (max-age=600|no-cache)/)
@@ -74,6 +79,7 @@ describe 'dovetail-redirect' do
     end
 
     it 'does not actually check if the file exists yet' do
+      skip
       resp = get_unique("#{REMOTE_EPISODE}/does-not-exist/foobar.mp3")
       resp.status.must_equal 302
       resp.headers['x-impressions'].to_i.must_equal 2

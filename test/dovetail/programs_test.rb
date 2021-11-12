@@ -6,7 +6,7 @@ describe 'dovetail-programs' do
 
   # NOTE: these must be ADFREE episodes, for things to work out.
   EPISODES = {
-    'criminal' => '_/123456789/6cb74b26-fd82-453e-be38-f6e4682ba86c/test.mp3',
+    # 'criminal' => '_/123456789/6cb74b26-fd82-453e-be38-f6e4682ba86c/test.mp3',
   }
   EPISODE_THREADS = {}
   EPISODE_RESPONSES = {}
