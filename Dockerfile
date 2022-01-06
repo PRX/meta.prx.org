@@ -27,4 +27,5 @@ ADD Gemfile ./
 ADD Gemfile.lock ./
 RUN bundle install
 
+VOLUME /var/lib/docker
 ENTRYPOINT [ "/bin/bash" ]

@@ -4,8 +4,9 @@ require 'digest'
 describe 'dovetail-programs' do
   include Dovetail::DSL
 
+  # NOTE: these must be ADFREE episodes, for things to work out.
   EPISODES = {
-    'test_feeder_two_segment' => 'test_feeder_two_segment/fc3130cc-66e4-486c-9e37-aed0a6d71682/test.mp3',
+    # 'criminal' => '_/123456789/6cb74b26-fd82-453e-be38-f6e4682ba86c/test.mp3',
   }
   EPISODE_THREADS = {}
   EPISODE_RESPONSES = {}
