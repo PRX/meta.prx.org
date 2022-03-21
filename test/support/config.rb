@@ -22,7 +22,7 @@ File.open("#{File.dirname(__FILE__)}/../../env-example", 'r').each_line do |line
       begin
         Excon.head(CONFIG[name])
       rescue
-        abort "unable to connect to #{CONFIG[name]}"
+        abort "unable to connect to #{name} = #{CONFIG[name]}"
       end
     end
   end
