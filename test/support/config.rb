@@ -1,8 +1,6 @@
 require 'excon'
 require 'ostruct'
 
-puts ENV.inspect
-
 CONFIG = OpenStruct.new
 optional_envs = %w(DOVETAIL_PROD_HOST)
 
