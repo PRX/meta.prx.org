@@ -21,7 +21,7 @@ end
 Rake::TestTask.new('test') do |t|
   if ENV['STAGING_APPLICATIONS_STACK_STATE'] != "Created"
     puts "Skipping test suite; no application stacks."
-    return
+    exit 0
   end
 
   # TODO When ENV['STAGING_REGION_MODE'] is not Primary, only apps that run in
