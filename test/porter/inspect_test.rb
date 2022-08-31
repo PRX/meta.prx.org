@@ -3,7 +3,7 @@ require 'aws-sdk-states'
 require 'json'
 
 step_functions = Aws::States::Client.new(
-  region: 'us-east-1'
+  region: ENV['PORTER_STATE_MACHINE_ARN'].split(':')[3]
 )
 
 describe :porter do
