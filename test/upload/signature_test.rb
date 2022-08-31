@@ -17,7 +17,7 @@ describe 'upload-signature' do
 
   it 'return correct signature' do
     resp = connection.get(query: {to_sign: 'test'})
-    resp.body.to_s.must_equal "TQ4Pdv8H2M69WKd4KE9APWD2Jz0="
+    ['TQ4Pdv8H2M69WKd4KE9APWD2Jz0=', 'g7YyJaLnX8ipwPnbGvVcKOsXf/8='].must_include(resp.body.to_s)
   end
 
 #  it 'enables CORS' do
