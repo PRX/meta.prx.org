@@ -5,7 +5,6 @@ env:
   parameter-store:
     PUBLISH_PASS: /prx/test/meta.prx.org/PUBLISH_PASS
     PUBLISH_USER: /prx/test/meta.prx.org/PUBLISH_USER
-    PORTER_STATE_MACHINE_ARN: /prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN
 phases:
   pre_build:
     commands:
