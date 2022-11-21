@@ -5,7 +5,7 @@ services:
     command: ci
     env_file:
       - .env
-    platform: linux/amd64
+    # platform: linux/amd64
     volumes:
       - ./test:/app/test
       - ./package.json:/app/package.json

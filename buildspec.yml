@@ -10,8 +10,8 @@ env:
     PUBLISH_HOST: '/prx/test/meta.prx.org/PUBLISH_HOST'
     UPLOAD_HOST: '/prx/test/meta.prx.org/UPLOAD_HOST'
     PORTER_STATE_MACHINE_ARN: '/prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN'
-    PUBLISH_PASS: '/prx/test/meta.prx.org/PUBLISH_PASS'
-    PUBLISH_USER: '/prx/test/meta.prx.org/PUBLISH_USER'
+    TEST_PRX_USER: '/prx/test/meta.prx.org/TEST_PRX_USER'
+    TEST_PRX_PASS: '/prx/test/meta.prx.org/TEST_PRX_PASS'
     TEST_FEEDER_PODCAST: '/prx/test/meta.prx.org/TEST_FEEDER_PODCAST'
     TEST_FEEDER_EPISODE: '/prx/test/meta.prx.org/TEST_FEEDER_EPISODE'
 phases:
