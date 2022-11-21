@@ -1,0 +1,24 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["prettier", "jest"],
+  "rules": {
+    "prettier/prettier": ["error"],
+    "no-param-reassign": 0,
+    "import/no-extraneous-dependencies": 0,
+    "no-use-before-define": ["error", { "functions": false }]
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "env": {
+        "jasmine": true,
+        "jest": true
+      },
+      "rules": {
+        "no-restricted-syntax": 0,
+        "no-await-in-loop": 0,
+        "no-console": 0
+      }
+    }
+  ]
+}
