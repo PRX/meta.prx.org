@@ -2,29 +2,27 @@
 version: 0.2
 env:
   parameter-store:
-    DOCKERHUB_USERNAME: "/prx/DOCKERHUB_USERNAME"
-    DOCKERHUB_PASSWORD: "/prx/DOCKERHUB_PASSWORD"
-    DOVETAIL_HOST: "/prx/test/meta.prx.org/DOVETAIL_HOST"
-    DOVETAIL_PROD_HOST: "/prx/test/meta.prx.org/DOVETAIL_PROD_HOST"
-    FEEDER_HOST: "/prx/test/meta.prx.org/FEEDER_HOST"
-    METRICS_HOST: "/prx/test/meta.prx.org/METRICS_HOST"
-    PUBLISH_HOST: "/prx/test/meta.prx.org/PUBLISH_HOST"
-    PUBLISH_PASS: "/prx/test/meta.prx.org/PUBLISH_PASS"
-    PUBLISH_USER: "/prx/test/meta.prx.org/PUBLISH_USER"
-    UPLOAD_HOST: "/prx/test/meta.prx.org/UPLOAD_HOST"
-    PORTER_STATE_MACHINE_ARN: "/prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN"
+    DOCKERHUB_USERNAME: '/prx/DOCKERHUB_USERNAME'
+    DOCKERHUB_PASSWORD: '/prx/DOCKERHUB_PASSWORD'
+    DOVETAIL_HOST: '/prx/test/meta.prx.org/DOVETAIL_HOST'
+    FEEDER_HOST: '/prx/test/meta.prx.org/FEEDER_HOST'
+    METRICS_HOST: '/prx/test/meta.prx.org/METRICS_HOST'
+    PUBLISH_HOST: '/prx/test/meta.prx.org/PUBLISH_HOST'
+    UPLOAD_HOST: '/prx/test/meta.prx.org/UPLOAD_HOST'
+    PORTER_STATE_MACHINE_ARN: '/prx/test/meta.prx.org/PORTER_STATE_MACHINE_ARN'
+    PUBLISH_PASS: '/prx/test/meta.prx.org/PUBLISH_PASS'
+    PUBLISH_USER: '/prx/test/meta.prx.org/PUBLISH_USER'
+    TEST_FEEDER_PODCAST: '/prx/test/meta.prx.org/TEST_FEEDER_PODCAST'
+    TEST_FEEDER_EPISODE: '/prx/test/meta.prx.org/TEST_FEEDER_EPISODE'
 phases:
-  install:
-    runtime-versions:
-      docker: 18
   pre_build:
     commands:
       - echo Logging in to Docker Hub...
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
   build:
     commands:
-      - "docker-compose -f docker-compose-ci.yml build"
-      - "docker-compose -f docker-compose-ci.yml run meta"
+      - 'docker-compose build'
+      - 'docker-compose run test'
   post_build:
     commands:
       - 'curl -sO "https://raw.githubusercontent.com/PRX/Infrastructure/master/ci/utility/post_build.sh" && chmod +x post_build.sh && bash ./post_build.sh'

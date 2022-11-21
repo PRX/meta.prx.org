@@ -1,7 +1,11 @@
-prxmeta:
-  build: .
-  volumes:
-    - .:/home
-  env_file: .env
-  entrypoint: bundle exec rake
-  command: test
+version: '2'
+services:
+  test:
+    build: .
+    command: ci
+    env_file:
+      - .env
+    platform: linux/amd64
+    volumes:
+      - ./test:/app/test
+      - ./package.json:/app/package.json
