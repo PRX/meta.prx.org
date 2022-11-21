@@ -51,7 +51,7 @@ describe('dovetail - redirect', () => {
 
     // expiration epoch should be "soon-ish"
     const now = Math.round(Date.now() / 1000);
-    expect(parseInt(query.exp)).toBeGreaterThan(now - 60);
-    expect(parseInt(query.exp)).toBeLessThan(now + 60 * 60 * 25);
+    expect(parseInt(query.exp, 10)).toBeGreaterThan(now - 60);
+    expect(parseInt(query.exp, 10)).toBeLessThan(now + 60 * 60 * 25);
   });
 });

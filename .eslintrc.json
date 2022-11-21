@@ -20,5 +20,18 @@
         "no-console": 0
       }
     }
-  ]
+  ],
+  "globals": {
+    "DOVETAIL_HOST": "readonly",
+    "FEEDER_HOST": "readonly",
+    "METRICS_HOST": "readonly",
+    "PUBLISH_HOST": "readonly",
+    "UPLOAD_HOST": "readonly",
+    "PORTER_STATE_MACHINE_ARN": "readonly",
+    "TEST_PRX_USER": "readonly",
+    "TEST_PRX_PASS": "readonly",
+    "TEST_FEEDER_PODCAST": "readonly",
+    "TEST_FEEDER_EPISODE": "readonly",
+    "USER_AGENT": "readonly"
+  }
 }
