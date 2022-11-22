@@ -1,31 +1,21 @@
-FROM ruby:2.3.6
+FROM node:16.18.1-slim
 
-# ffmpeg from static build
-RUN cd /root && \
-    curl -s https://s3.amazonaws.com/prx-tech/archives/ffmpeg-release-64bit-static.tar.xz | unxz | tar x && \
-    mv ffmpeg-*-static/ffmpeg /usr/local/bin/ && \
-    mv ffmpeg-*-static/ffprobe /usr/local/bin/ && \
-    rm -rf /root/ffmpeg*
+MAINTAINER PRX <sysadmin@prx.org>
 
-# ffmpeg output may include non-ascii characters
-ENV LANG=C.UTF-8
+WORKDIR /app
 
-# phantomjs
-RUN apt-get update && \
-    apt-get install -y libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev && \
-    cd /root && \
-    wget --local-encoding=utf-8 -q https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-    tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2 && \
-    mv phantomjs-*/bin/phantomjs /usr/local/bin && \
-    apt-get clean && \
-    rm -rf /root/phantomjs* /var/lib/apt/lists/* /var/cache/apt/*
+ENTRYPOINT [ "yarn", "run" ]
+CMD [ "test" ]
 
-# pre-bundle dependencies
-WORKDIR /home
-ENV HOME=/home
-ADD Gemfile ./
-ADD Gemfile.lock ./
-RUN bundle install
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+RUN apt-get update && apt-get install gnupg wget -y && \
+  wget --quiet --output-document=- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/google-archive.gpg && \
+  sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
+  apt-get update && \
+  apt-get install google-chrome-stable -y --no-install-recommends && \
+  rm -rf /var/lib/apt/lists/*
 
-VOLUME /var/lib/docker
-ENTRYPOINT [ "/bin/bash" ]
+ADD yarn.lock ./
+ADD package.json ./
+RUN yarn install
+ADD . .

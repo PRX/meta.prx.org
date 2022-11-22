@@ -1,9 +1,15 @@
 DOVETAIL_HOST=dovetail.staging.prxu.org
-DOVETAIL_PROD_HOST=dovetail.prxu.org
 FEEDER_HOST=feeder.staging.prx.tech
+METRICS_HOST=metrics.staging.prx.tech
 PUBLISH_HOST=publish.staging.prx.tech
-PUBLISH_USER=
-PUBLISH_PASS=
 UPLOAD_HOST=
-METRICS_HOST=
 PORTER_STATE_MACHINE_ARN=
+
+# leave alone to run tests in dev
+STAGING_APPLICATIONS_STACK_STATE=Created
+
+# test fixtures
+TEST_PRX_USER=
+TEST_PRX_PASS=
+TEST_FEEDER_PODCAST=
+TEST_FEEDER_EPISODE=
