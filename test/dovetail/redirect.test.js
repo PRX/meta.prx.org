@@ -9,11 +9,12 @@ describe('dovetail - redirect', () => {
 
   // unique user-agent headers
   const opts = { redirect: 'manual', headers: {} };
-  beforeEach(() => (opts.headers['user-agent'] = USER_AGENT + ' / ' + uuid.v4()));
+  beforeEach(() => {
+    opts.headers['user-agent'] = `${USER_AGENT} / ${uuid.v4()}`;
+  });
 
-  const hasImpressions = r => {
-    return ['x-impressions', 'x-repressions', 'x-depressions'].map(k => r.headers.has(k));
-  };
+  const hasImpressions = r =>
+    ['x-impressions', 'x-repressions', 'x-depressions'].map(k => r.headers.has(k));
 
   it('redirects to the cdn', async () => {
     const res = await fetch(TEST_URL, opts);
@@ -78,7 +79,7 @@ describe('dovetail - redirect', () => {
   });
 
   it('returns depressions for noImp requests', async () => {
-    const res = await fetch(TEST_URL + '?noImp', opts);
+    const res = await fetch(`${TEST_URL}?noImp`, opts);
 
     expect(res.status).toEqual(302);
     expect(hasImpressions(res)).toEqual([false, false, true]);

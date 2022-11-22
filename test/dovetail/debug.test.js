@@ -1,7 +1,4 @@
-const url = require('url');
-const querystring = require('querystring');
 const fetch = require('node-fetch');
-const uuid = require('uuid');
 
 describe('dovetail - debug', () => {
   const TEST_PATH = `${TEST_FEEDER_PODCAST}/${TEST_FEEDER_EPISODE}/test-file.mp3`;
@@ -22,8 +19,8 @@ describe('dovetail - debug', () => {
 
     // arrangement/placement
     expect(json.arrangement.length).toBeGreaterThan(1);
-    expect(json.arrangement.filter(p => p.type == 'original').length).toBeGreaterThan(1);
-    expect(json.arrangement.filter(p => p.type == 'sonic_id').length).toBeGreaterThan(0);
-    expect(json.arrangement.filter(p => p.type == 'ad').length).toBeGreaterThan(0);
+    expect(json.arrangement.filter(p => p.type === 'original').length).toBeGreaterThan(1);
+    expect(json.arrangement.filter(p => p.type === 'sonic_id').length).toBeGreaterThan(0);
+    expect(json.arrangement.filter(p => p.type === 'ad').length).toBeGreaterThan(0);
   });
 });
