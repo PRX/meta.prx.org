@@ -21,6 +21,7 @@ phases:
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
   build:
     commands:
+      - 'cp env-example .env'
       - 'docker-compose build'
       - 'docker-compose run test'
   post_build:
