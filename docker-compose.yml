@@ -5,6 +5,17 @@ services:
     command: ci
     env_file:
       - .env
+    environment:
+      - DOVETAIL_HOST
+      - FEEDER_HOST
+      - METRICS_HOST
+      - PUBLISH_HOST
+      - UPLOAD_HOST
+      - PORTER_STATE_MACHINE_ARN
+      - TEST_PRX_USER
+      - TEST_PRX_PASS
+      - TEST_FEEDER_PODCAST
+      - TEST_FEEDER_EPISODE
     # uncomment to run docker on mac m1
     # platform: linux/amd64
     volumes:
