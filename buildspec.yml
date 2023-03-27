@@ -20,8 +20,9 @@ phases:
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
   build:
     commands:
-      - docker-compose -f docker-compose-ci.yml build
-      - docker-compose -f docker-compose-ci.yml run meta
+      - echo 'TODO modernize me'
+      # - docker-compose -f docker-compose-ci.yml build
+      # - docker-compose -f docker-compose-ci.yml run meta
   post_build:
     commands:
       - curl -sO "https://raw.githubusercontent.com/PRX/Infrastructure/main/ci/utility/post_build.sh"
