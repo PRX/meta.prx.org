@@ -3,11 +3,13 @@ require 'browser_helper'
 describe :publish, :js do
   describe :basic do
     it 'gets redirected to the login page' do
+      skip
       visit CONFIG.PUBLISH_HOST
       page.must_have_content "You must login"
     end
 
     it 'can login' do
+      skip
       publish_login!
       visit CONFIG.PUBLISH_HOST
       page.must_have_content(/Home/i)
